@@ -3,8 +3,7 @@
 ## Start server
 
 ```
-npm run docker:db ## start database
-npm run dev ## start server
+npm run dev ## start db and server
 ```
 
 ## Start client
