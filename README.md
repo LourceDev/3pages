@@ -1,5 +1,18 @@
 # 3pages
 
+## Start server
+
+```
+npm run docker:db ## start database
+npm run dev ## start server
+```
+
+## Start client
+
+```
+npm run dev
+```
+
 ## .env
 
 ```

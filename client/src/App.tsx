@@ -7,6 +7,7 @@ import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router";
 import About from "./pages/About";
 import Home from "./pages/Home";
+import Write from "./pages/Write";
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route index element={<Home />} />
+          <Route path="write" element={<Write />} />
           <Route path="about" element={<About />} />
         </Routes>
       </BrowserRouter>

@@ -20,6 +20,10 @@ import { Link as RouterLink } from "react-router";
 const drawerWidth = 240;
 const navItems = [
   {
+    label: "Write",
+    href: "/write",
+  },
+  {
     label: "About",
     href: "/about",
   },
