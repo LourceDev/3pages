@@ -7,6 +7,8 @@ function safeEnv(key: string): string {
 }
 
 export default {
+  DATABASE_URL: safeEnv("DATABASE_URL"),
   JWT_SECRET: safeEnv("JWT_SECRET"),
+  NODE_ENV: safeEnv("NODE_ENV"),
   PORT: parseInt(safeEnv("PORT")),
 };

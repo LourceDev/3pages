@@ -1,20 +1,19 @@
-import { PrismaClient } from "@prisma/client";
-import express from "express";
-import { authRouter } from "./auth";
+import { configDotenv } from "dotenv";
+configDotenv({ path: ".env.development" });
+
+import { connectDb } from "./db";
 import env from "./env";
+import { newLogger } from "./logger";
+import { startServer } from "./server";
 
-const app = express();
-export const prisma = new PrismaClient({
-  log: ["query", "info", "warn", "error"],
-});
+async function main() {
+  const logger = newLogger("main");
 
-app.use(express.json());
-app.use("/auth", authRouter);
+  await connectDb();
+  const app = startServer();
+  app.listen(env.PORT, () => {
+    logger.info(`Server is running on http://localhost:${env.PORT}`);
+  });
+}
 
-app.get("/", (req, res) => {
-  res.json({ status: "works" });
-});
-
-app.listen(env.PORT, () => {
-  console.log(`Server is running on http://localhost:${env.PORT}`);
-});
+main();

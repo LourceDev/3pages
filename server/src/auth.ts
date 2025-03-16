@@ -1,16 +1,17 @@
 import * as argon2 from "argon2";
-import jwt from "jsonwebtoken";
 import { Request, Router } from "express";
+import jwt from "jsonwebtoken";
 import passport from "passport";
 import {
-  Strategy as JwtStrategy,
   ExtractJwt,
+  Strategy as JwtStrategy,
   StrategyOptionsWithRequest,
 } from "passport-jwt";
 import { z } from "zod";
-import { prisma } from "./main";
-import { HttpStatusCode } from "./utils";
+import { db } from "./db";
 import env from "./env";
+import { newLogger } from "./logger";
+import { HttpStatusCode } from "./utils";
 
 async function hashPassword(password: string) {
   // https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#argon2id
@@ -54,8 +55,10 @@ const signupInputSchema = z.object({
 });
 
 authRouter.post("/signup", async (req, res) => {
+  const logger = newLogger("signup");
   const parseResult = signupInputSchema.safeParse(req.body);
   if (!parseResult.success) {
+    logger.error(JSON.stringify(parseResult.error.errors));
     res
       .status(HttpStatusCode.BAD_REQUEST)
       .json({ error: parseResult.error.errors });
@@ -64,7 +67,7 @@ authRouter.post("/signup", async (req, res) => {
   // Create and store the user in the database
   try {
     const hashedPassword = await hashPassword(parseResult.data.password);
-    await prisma.user.create({
+    await db.user.create({
       data: {
         ...parseResult.data,
         password: hashedPassword,
@@ -75,7 +78,7 @@ authRouter.post("/signup", async (req, res) => {
       .json({ message: "User created successfully" });
     return;
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     res
       .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
       .json({ error: "Error signing up" });
@@ -98,7 +101,7 @@ authRouter.post("/login", async (req, res) => {
     return;
   }
   // Validate user details
-  const user = await prisma.user.findUnique({
+  const user = await db.user.findUnique({
     where: { email: parseResult.data.email },
   });
   if (
