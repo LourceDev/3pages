@@ -49,8 +49,8 @@ const passwordSchema = z
   .max(40, "Password must be at most 40 characters long");
 
 const signupInputSchema = z.object({
-  email: z.string().email(),
-  name: z.string().min(1),
+  email: z.string().email("Invalid email"),
+  name: z.string().min(1, "Name must not be empty"),
   password: passwordSchema,
 });
 
@@ -87,7 +87,7 @@ authRouter.post("/signup", async (req, res) => {
 });
 
 const loginInputSchema = z.object({
-  email: z.string().email(),
+  email: z.string().email("Invalid email"),
   password: passwordSchema,
 });
 

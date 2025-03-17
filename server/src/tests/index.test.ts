@@ -23,17 +23,18 @@ async function clearDatabase() {
     const { stdout, stderr } = await execAsync(
       "npx prisma db push --force-reset"
     );
-    logger.info(`stdout: ${stdout}`);
-    logger.error(`stderr: ${stderr}`);
+    if (stdout) logger.info(`stdout: ${stdout}`);
+    if (stderr) logger.error(`stderr: ${stderr}`);
   } catch (error) {
     logger.error(`error: ${error}`);
   }
 }
 
-const app = startServer();
+let app: ReturnType<typeof startServer>;
 
 beforeAll(async () => {
   await connectDb();
+  app = startServer();
   await clearDatabase();
 });
 
@@ -43,14 +44,49 @@ afterAll(async () => {
 });
 
 describe("auth", () => {
-  test("signup", async () => {
+  test("invalid signup", async () => {
     await supertest(app)
       .post("/api/auth/signup")
       .send({
         name: faker.person.fullName(),
-        email: faker.internet.email(),
-        password: faker.internet.password(),
+        email: "asdf",
+        password: "123",
+      })
+      .expect(HttpStatusCode.BAD_REQUEST);
+  });
+
+  const email = faker.internet.email();
+  const password = faker.internet.password();
+
+  test("valid signup", async () => {
+    await supertest(app)
+      .post("/api/auth/signup")
+      .send({
+        name: faker.person.fullName(),
+        email,
+        password,
       })
       .expect(HttpStatusCode.CREATED);
+  });
+
+  test("invalid login", async () => {
+    await supertest(app)
+      .post("/api/auth/login")
+      .send({
+        email: "asdf",
+        password: "123",
+      })
+      .expect(HttpStatusCode.BAD_REQUEST);
+  });
+
+  test("valid login", async () => {
+    const res = await supertest(app)
+      .post("/api/auth/login")
+      .send({
+        email,
+        password,
+      })
+      .expect(HttpStatusCode.OK);
+    expect(res.body).toHaveProperty("token");
   });
 });
