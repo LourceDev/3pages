@@ -16,6 +16,7 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import { useState } from "react";
 import { Link as RouterLink } from "react-router";
+import HrefRouterLink from "./HrefRouterLink";
 
 const drawerWidth = 240;
 const navItems = [
@@ -92,8 +93,9 @@ export default function Navbar() {
           >
             {navItems.map((item) => (
               <Button
-                key={item.label}
+                key={item.href}
                 href={item.href}
+                LinkComponent={HrefRouterLink}
                 // lineHeight: inherit fixes https://github.com/mui/material-ui/issues/19584
                 sx={{ color: "#fff", lineHeight: "inherit" }}
               >

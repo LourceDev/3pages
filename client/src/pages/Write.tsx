@@ -4,6 +4,7 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { useState } from "react";
 import Navbar from "../components/Navbar";
+import { getRandomIntInclusive, notifySuccess } from "../utils";
 
 function countWords(text: string) {
   // TODO: this is not efficient, improve it
@@ -12,8 +13,19 @@ function countWords(text: string) {
   return words.filter((word) => !!word).length;
 }
 
+const messages = [
+  "🎉 You did it!",
+  "🚀 Crushed it!",
+  "✨ All done!",
+  "🏆 Success!",
+  "🔥 Nice work!",
+  "🎶 That’s a wrap!",
+];
+
 export default function Write() {
   const [text, setText] = useState("");
+  const wordLimit = 750;
+  const [successMessageShown, setSuccessMessageShown] = useState(false);
 
   const today = new Date().toLocaleDateString("en-GB", {
     day: "numeric",
@@ -40,6 +52,13 @@ export default function Write() {
               value={text}
               onChange={(e) => {
                 setText(e.target.value);
+                // TODO: this is not efficient, improve it
+                if (!successMessageShown && countWords(text) > wordLimit) {
+                  notifySuccess(
+                    messages[getRandomIntInclusive(0, messages.length - 1)]
+                  );
+                  setSuccessMessageShown(true);
+                }
               }}
               autoFocus
               spellCheck={false}
