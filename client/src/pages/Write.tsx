@@ -25,6 +25,7 @@ const messages = [
 export default function Write() {
   const [text, setText] = useState("");
   const wordLimit = 750;
+  // used to ensure that the success message is shown only once
   const [successMessageShown, setSuccessMessageShown] = useState(false);
 
   const today = new Date().toLocaleDateString("en-GB", {
