@@ -2,8 +2,9 @@
   "name": "server",
   "version": "1.0.0",
   "scripts": {
+    "dev:prisma": "dotenv -e ./.env.development prisma",
     "start": "node dist/main.js",
-    "dev": "npm run docker:db && dotenv -e ./.env.development nodemon --watch src --exec ts-node src/main.ts",
+    "dev": "dotenv -e ./.env.development nodemon --watch src --exec ts-node src/main.ts",
     "clean": "rimraf dist",
     "build": "npm run clean && tsc",
     "docker:db": "docker compose up -d",
