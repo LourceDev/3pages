@@ -4,6 +4,7 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { useState } from "react";
 import Navbar from "../components/Navbar";
+import TipTap from "../components/TipTap";
 import { getRandomIntInclusive, notifySuccess } from "../utils";
 
 function countWords(text: string) {
@@ -43,6 +44,9 @@ export default function Write() {
           <Typography variant="h4" gutterBottom align="center">
             {today}
           </Typography>
+
+          <TipTap />
+
           <Stack spacing={1}>
             <TextField
               label="Write something..."
@@ -61,7 +65,6 @@ export default function Write() {
                   setSuccessMessageShown(true);
                 }
               }}
-              autoFocus
               spellCheck={false}
               slotProps={{
                 htmlInput: {

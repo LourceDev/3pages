@@ -81,7 +81,6 @@ function ResponsiveAppBar() {
             <MenuIcon />
           </IconButton>
           <Menu
-            id="menu-appbar"
             anchorEl={anchorElNav}
             anchorOrigin={{
               vertical: "bottom",
@@ -172,7 +171,6 @@ function ResponsiveAppBar() {
           </Tooltip>
           <Menu
             sx={{ mt: "45px" }}
-            id="menu-appbar"
             anchorEl={anchorElUser}
             anchorOrigin={{
               vertical: "top",
