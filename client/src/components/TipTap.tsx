@@ -41,15 +41,29 @@ export default function TipTap() {
   // TODO: add a toolbar
   // TODO: display word count
   // TODO: notify when 750 words are reached
-  // TODO: fix ugly black outline on focus, try to use mui's blue outline
-  // TODO: add some padding between the text and the border
 
   return (
     <EditorProvider
       extensions={extensions}
-      content={
-        "<p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsam repellat ad maiores quaerat sit. Ducimus quasi quod minima, est quos nihil commodi neque cum illum exercitationem? Perferendis quaerat consectetur voluptatum?</p><p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsam repellat ad maiores quaerat sit. Ducimus quasi quod minima, est quos nihil commodi neque cum illum exercitationem? Perferendis quaerat consectetur voluptatum?</p><p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsam repellat ad maiores quaerat sit. Ducimus quasi quod minima, est quos nihil commodi neque cum illum exercitationem? Perferendis quaerat consectetur voluptatum?</p><p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsam repellat ad maiores quaerat sit. Ducimus quasi quod minima, est quos nihil commodi neque cum illum exercitationem? Perferendis quaerat consectetur voluptatum?</p>"
-      }
+      editorProps={{
+        attributes: {
+          class:
+            "border-2 border-gray-300 rounded-md p-4 focus:outline-none focus:border-blue-500 text-xl",
+        },
+      }}
+      content={`<h1>h1</h1>
+
+<h2>h2</h2>
+
+<h3>h3</h3>
+
+<h4>h4</h4>
+
+<h5>h5</h5>
+
+<h6>h6</h6>
+
+<p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsam repellat ad maiores quaerat sit. Ducimus quasi quod minima, est quos nihil commodi neque cum illum exercitationem? Perferendis quaerat consectetur voluptatum?</p><p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsam repellat ad maiores quaerat sit. Ducimus quasi quod minima, est quos nihil commodi neque cum illum exercitationem? Perferendis quaerat consectetur voluptatum?</p><p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsam repellat ad maiores quaerat sit. Ducimus quasi quod minima, est quos nihil commodi neque cum illum exercitationem? Perferendis quaerat consectetur voluptatum?</p><p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsam repellat ad maiores quaerat sit. Ducimus quasi quod minima, est quos nihil commodi neque cum illum exercitationem? Perferendis quaerat consectetur voluptatum?</p>`}
       autofocus
     ></EditorProvider>
   );

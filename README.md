@@ -6,7 +6,7 @@
   - [Table of contents](#table-of-contents)
   - [Server setup](#server-setup)
     - [.env.development](#envdevelopment)
-      - [Generate JWT\_SECRET](#generate-jwt_secret)
+      - [Generate JWT_SECRET](#generate-jwt_secret)
       - [Example .env.development file](#example-envdevelopment-file)
     - [Start database](#start-database)
     - [Run migrations](#run-migrations)
@@ -22,12 +22,15 @@
 ### .env.development
 
 #### Generate JWT_SECRET
+
 <!-- https://www.digitalocean.com/community/tutorials/nodejs-jwt-expressjs#step-1-generating-a-token -->
+
 ```sh
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'));"
 ```
 
 #### Example .env.development file
+
 ```
 DATABASE_URL="postgresql://myuser:mypassword@127.0.0.1:5432/mydb?schema=public"
 JWT_SECRET=
@@ -72,6 +75,7 @@ npm run dev
 - hemingway editor ([ref](https://hemingwayapp.com/))
 - command pallette similar to monkey type or vscode ([ref](https://monkeytype.com/) (press <kbd>ctrl</kbd>+<kbd>shift</kbd>+<kbd>p</kbd>))
 - journal/writing prompts ([ref](https://journalprompts.net/))
+  - can be user configurable i.e. user can add their own prompts
 - memories like google photos, which shows you your past entries on the same day, or similar entries
 - wrote down some banger thoughts? share them by selecting text and clicking share button
 - highlighting text, all these highlighted texts can be viewed in a separate page
