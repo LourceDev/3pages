@@ -6,7 +6,7 @@
   - [Table of contents](#table-of-contents)
   - [Server setup](#server-setup)
     - [.env.development](#envdevelopment)
-      - [Generate JWT\_SECRET](#generate-jwt_secret)
+      - [Generate JWT_SECRET](#generate-jwt_secret)
       - [Example .env.development file](#example-envdevelopment-file)
     - [Start database](#start-database)
     - [Run migrations](#run-migrations)
@@ -22,12 +22,15 @@
 ### .env.development
 
 #### Generate JWT_SECRET
+
 <!-- https://www.digitalocean.com/community/tutorials/nodejs-jwt-expressjs#step-1-generating-a-token -->
+
 ```sh
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'));"
 ```
 
 #### Example .env.development file
+
 ```
 DATABASE_URL="postgresql://myuser:mypassword@127.0.0.1:5432/mydb?schema=public"
 JWT_SECRET=
@@ -52,6 +55,17 @@ npm run dev:prisma migrate deploy
 ```sh
 npm run dev
 ```
+
+### DB Authentication error
+
+If you face this error while starting the dev server.
+
+![DB Error](./Documentation/images/dberror.jpg "DB error")
+
+1. Type services in start menu
+2. open services application
+3. Find 'postgresql' service.
+4. Right click on it and click stop.
 
 ## Client setup
 
