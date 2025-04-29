@@ -86,6 +86,7 @@ npm run dev
 - hemingway editor ([ref](https://hemingwayapp.com/))
 - command pallette similar to monkey type or vscode ([ref](https://monkeytype.com/) (press <kbd>ctrl</kbd>+<kbd>shift</kbd>+<kbd>p</kbd>))
 - journal/writing prompts ([ref](https://journalprompts.net/))
+  - can be user configurable i.e. user can add their own prompts
 - memories like google photos, which shows you your past entries on the same day, or similar entries
 - wrote down some banger thoughts? share them by selecting text and clicking share button
 - highlighting text, all these highlighted texts can be viewed in a separate page
