@@ -19,6 +19,7 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import { useState } from "react";
 import Navbar from "../components/Navbar";
 import { notifySuccess } from "../utils";
+
 function countWords(text: string) {
   // TODO: this is not efficient, improve it
   // split at whitespace, count the number of non-empty strings
