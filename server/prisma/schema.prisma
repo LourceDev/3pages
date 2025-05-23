@@ -19,4 +19,17 @@ model User {
   name      String
   password  String
   createdAt DateTime @default(now())
+  Entry     Entry[]
+}
+
+model Entry {
+  userId    Int
+  date      DateTime
+  text      String   @db.Text
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@id([userId, date])
+  // for each user, allow unique dates only
+  @@unique([userId, date])
 }

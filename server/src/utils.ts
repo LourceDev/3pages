@@ -1,3 +1,20 @@
+import { Response } from "express";
+import { Logger } from "winston";
+import { ZodError } from "zod";
+
+export function inputError(logger: Logger, error: ZodError, res: Response) {
+  logger.error(JSON.stringify(error.errors));
+  res
+    .status(HttpStatusCode.BAD_REQUEST)
+    .json({ error: error.errors.map((e) => e.message) });
+}
+
+export function catchAll(logger: Logger, error: any, res: Response) {
+  logger.error(error);
+  // don't let the error go to the user
+  res.sendStatus(HttpStatusCode.INTERNAL_SERVER_ERROR);
+}
+
 /**
  * Hypertext Transfer Protocol (HTTP) response status codes.
  * @see {@link https://en.wikipedia.org/wiki/List_of_HTTP_status_codes}

@@ -1,5 +1,5 @@
 import * as argon2 from "argon2";
-import { Request, Router } from "express";
+import { Router } from "express";
 import jwt from "jsonwebtoken";
 import passport from "passport";
 import {
@@ -7,11 +7,13 @@ import {
   Strategy as JwtStrategy,
   StrategyOptionsWithRequest,
 } from "passport-jwt";
-import { z } from "zod";
 import { db } from "./db";
 import env from "./env";
 import { newLogger } from "./logger";
-import { HttpStatusCode } from "./utils";
+import { catchAll, HttpStatusCode, inputError } from "./utils";
+import { schema } from "./validation-schema";
+
+/* ------------------------------- functions -------------------------------- */
 
 async function hashPassword(password: string) {
   // https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#argon2id
@@ -24,48 +26,46 @@ async function hashPassword(password: string) {
   return hash;
 }
 
+/* -------------------------------- globals --------------------------------- */
+
+type JwtPayload = { userId: number };
+
 const options: StrategyOptionsWithRequest = {
   secretOrKey: env.JWT_SECRET,
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
   passReqToCallback: true,
 };
 
-interface JwtPayload {}
-
 passport.use(
-  new JwtStrategy(options, (req: Request, payload, done) => {
-    // TODO: impl this
-    console.log(payload);
-    done(null, {});
+  new JwtStrategy(options, async (req, payload: JwtPayload, done) => {
+    try {
+      const user = await db.user.findUnique({ where: { id: payload.userId } });
+      if (user === null) {
+        console.log("user was null");
+        return done(null, false);
+      }
+      console.log("user was valid");
+      return done(null, user);
+    } catch (err) {
+      console.log("user was err");
+      return done(err, false);
+    }
   })
 );
 
 export const authRouter = Router();
 
-const passwordSchema = z
-  .string()
-  .trim()
-  .min(8, "Password must be at least 8 characters long")
-  .max(40, "Password must be at most 40 characters long");
-
-const signupInputSchema = z.object({
-  email: z.string().email("Invalid email"),
-  name: z.string().min(1, "Name must not be empty"),
-  password: passwordSchema,
-});
+/* --------------------------------- signup --------------------------------- */
 
 authRouter.post("/signup", async (req, res) => {
   const logger = newLogger("signup");
-  const parseResult = signupInputSchema.safeParse(req.body);
-  if (!parseResult.success) {
-    logger.error(JSON.stringify(parseResult.error.errors));
-    res
-      .status(HttpStatusCode.BAD_REQUEST)
-      .json({ error: parseResult.error.errors });
-    return;
-  }
-  // Create and store the user in the database
   try {
+    // deal with input
+    const parseResult = schema.signupInput.safeParse(req.body);
+    if (!parseResult.success) {
+      return inputError(logger, parseResult.error, res);
+    }
+    // Create and store the user in the database
     const hashedPassword = await hashPassword(parseResult.data.password);
     await db.user.create({
       data: {
@@ -73,49 +73,50 @@ authRouter.post("/signup", async (req, res) => {
         password: hashedPassword,
       },
     });
+    // return response
     res
       .status(HttpStatusCode.CREATED)
       .json({ message: "User created successfully" });
     return;
-  } catch (error) {
-    logger.error(error);
-    res
-      .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
-      .json({ error: "Error signing up" });
-    return;
+  } catch (err) {
+    return catchAll(logger, err, res);
   }
 });
 
-const loginInputSchema = z.object({
-  email: z.string().email("Invalid email"),
-  password: passwordSchema,
-});
+/* --------------------------------- login ---------------------------------- */
 
 authRouter.post("/login", async (req, res) => {
-  // Validate request body
-  const parseResult = loginInputSchema.safeParse(req.body);
-  if (!parseResult.success) {
-    res
-      .status(HttpStatusCode.BAD_REQUEST)
-      .json({ error: parseResult.error.errors });
+  const logger = newLogger("login");
+  try {
+    // Validate request body
+    const parseResult = schema.loginInput.safeParse(req.body);
+    if (!parseResult.success) {
+      return inputError(logger, parseResult.error, res);
+    }
+    // Validate user details
+    const user = await db.user.findUnique({
+      where: { email: parseResult.data.email },
+    });
+    if (
+      user === null ||
+      !(await argon2.verify(user.password, parseResult.data.password))
+    ) {
+      res
+        .status(HttpStatusCode.UNAUTHORIZED)
+        .json({ error: "Incorrect email or password" });
+      return;
+    }
+    // Send a JWT token
+    const token = jwt.sign(
+      { userId: user.id } satisfies JwtPayload,
+      env.JWT_SECRET,
+      {
+        expiresIn: "7d",
+      }
+    );
+    res.json({ token });
     return;
+  } catch (err) {
+    return catchAll(logger, err, res);
   }
-  // Validate user details
-  const user = await db.user.findUnique({
-    where: { email: parseResult.data.email },
-  });
-  if (
-    user === null ||
-    !(await argon2.verify(user.password, parseResult.data.password))
-  ) {
-    res
-      .status(HttpStatusCode.UNAUTHORIZED)
-      .json({ error: "Incorrect email or password" });
-    return;
-  }
-  // Send a JWT token
-  const token = jwt.sign({ userId: user.id }, env.JWT_SECRET, {
-    expiresIn: "7d",
-  });
-  res.json({ token });
 });
