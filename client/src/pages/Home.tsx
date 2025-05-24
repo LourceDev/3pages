@@ -1,13 +1,18 @@
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
-import Navbar from "../components/Navbar";
-export default function Home() {
+import { useSelector } from "react-redux";
+import { RootState } from "../store";
+
+export function Home() {
+  const { user } = useSelector((state: RootState) => state.app);
+
   return (
     <Stack spacing={2}>
-      <Navbar />
+      <div>{/* added for spacing */}</div>
       <Stack px={2}>
         <Box>
-          if logged in, show dashboard here with stats like
+          if logged in {user !== null ? `(hello ${user.name}!)` : ""}, show
+          dashboard here with stats like
           <ul>
             <li>if not written today, show prominent CTA button to write</li>
             <li>if written today, show today's stats</li>

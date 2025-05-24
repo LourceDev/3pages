@@ -11,15 +11,19 @@ import Toolbar from "@mui/material/Toolbar";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import * as React from "react";
-import HrefRouterLink from "./HrefRouterLink";
+import { HrefRouterLink } from "./HrefRouterLink";
 
 const WEBSITE_NAME = "3pages";
 
-const pages = [{ label: "Write", url: "/write" }];
+const pages = [
+  { label: "Write", url: "/write" },
+  { label: "Signup", url: "/signup" },
+  { label: "Login", url: "/login" },
+];
 // TODO: changes these later
 const settings = ["Profile", "Account", "Dashboard", "Logout"];
 
-function ResponsiveAppBar() {
+export function Navbar() {
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(
     null
   );
@@ -54,7 +58,7 @@ function ResponsiveAppBar() {
         <Typography
           variant="h6"
           noWrap
-          component="a"
+          component={HrefRouterLink}
           href="/"
           sx={{
             mr: 2,
@@ -151,13 +155,6 @@ function ResponsiveAppBar() {
             >
               {page.label}
             </Button>
-            // <Button
-            //   key={page.url}
-            //   onClick={handleCloseNavMenu}
-            //   sx={{ my: 2, color: "white", display: "block" }}
-            // >
-            //   {page.label}
-            // </Button>
           ))}
         </Box>
         <Box mr={2} display={{ xs: "none", md: "initial" }} />
@@ -195,4 +192,3 @@ function ResponsiveAppBar() {
     </AppBar>
   );
 }
-export default ResponsiveAppBar;

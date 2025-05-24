@@ -6,6 +6,6 @@ interface HrefRouterLinkProps extends TypeofLink {
   href: string;
 }
 
-export default function HrefRouterLink(props: HrefRouterLinkProps) {
+export function HrefRouterLink(props: HrefRouterLinkProps) {
   return <Link to={props.href} {...props} />;
 }

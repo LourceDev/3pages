@@ -17,7 +17,6 @@ import { Paragraph } from "@tiptap/extension-paragraph";
 import { Text } from "@tiptap/extension-text";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { useState } from "react";
-import Navbar from "../components/Navbar";
 import { notifySuccess } from "../utils";
 
 function countWords(text: string) {
@@ -84,7 +83,7 @@ const today = new Date().toLocaleDateString("en-GB", {
   year: "numeric",
 });
 
-export default function Write() {
+export function Write() {
   // TODO: set this to 750 later
   const wordLimit = 15;
   // used to ensure that the success message is shown only once
@@ -116,7 +115,7 @@ export default function Write() {
 
   return (
     <Stack spacing={4} alignItems={"center"}>
-      <Navbar />
+      <div>{/* added for spacing */}</div>
       <Container>
         <Stack spacing={4}>
           <Typography variant="h4" gutterBottom align="center">
