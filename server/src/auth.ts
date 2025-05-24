@@ -114,7 +114,8 @@ authRouter.post("/login", async (req, res) => {
         expiresIn: "7d",
       }
     );
-    res.json({ token });
+    const { password: _, ...userWithoutPassword } = user;
+    res.json({ token, user: userWithoutPassword });
     return;
   } catch (err) {
     return catchAll(logger, err, res);
