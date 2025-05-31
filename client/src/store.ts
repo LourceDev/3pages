@@ -1,6 +1,7 @@
 import type { PayloadAction } from "@reduxjs/toolkit";
 import { configureStore, createSlice } from "@reduxjs/toolkit";
 import { LoginOutput } from "./api";
+import { isClient } from "./utils";
 
 export interface AppState {
   token: string | null;
@@ -8,8 +9,8 @@ export interface AppState {
 }
 
 const initialState: AppState = {
-  token: localStorage.getItem("token") || null,
-  user: JSON.parse(localStorage.getItem("user") || "null"),
+  token: isClient() ? localStorage.getItem("token") : null,
+  user: isClient() ? JSON.parse(localStorage.getItem("user") || "null") : null,
 };
 
 export const appSlice = createSlice({

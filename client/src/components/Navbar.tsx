@@ -10,8 +10,8 @@ import MenuItem from "@mui/material/MenuItem";
 import Toolbar from "@mui/material/Toolbar";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
+import NextLink from "next/link";
 import * as React from "react";
-import { HrefRouterLink } from "./HrefRouterLink";
 
 const WEBSITE_NAME = "3pages";
 
@@ -55,11 +55,10 @@ export function Navbar() {
         }
         <AdbIcon sx={{ display: { xs: "none", md: "flex" }, mr: 1 }} />
         {/* Website name */}
-        {/* @ts-expect-error typescript doesn't like us using another component as a link */}
         <Typography
           variant="h6"
           noWrap
-          component={HrefRouterLink}
+          component={NextLink}
           href="/"
           sx={{
             mr: 2,
@@ -102,14 +101,13 @@ export function Navbar() {
             {pages.map((page) => (
               // TODO: link should be on MenuItem, not on Typography
               <MenuItem key={page.url} onClick={handleCloseNavMenu}>
-                {/* @ts-expect-error typescript doesn't like us using another component as a link */}
                 <Typography
                   sx={{
                     textAlign: "center",
                     color: "inherit",
                     textDecoration: "none",
                   }}
-                  component={HrefRouterLink}
+                  component={NextLink}
                   href={page.url}
                 >
                   {page.label}
@@ -149,7 +147,7 @@ export function Navbar() {
             <Button
               key={page.url}
               href={page.url}
-              LinkComponent={HrefRouterLink}
+              LinkComponent={NextLink}
               // lineHeight: inherit fixes issues with icon alignment https://github.com/mui/material-ui/issues/19584
               sx={{ color: "#fff", lineHeight: "inherit" }}
             >

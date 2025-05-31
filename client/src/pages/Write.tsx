@@ -69,7 +69,7 @@ const extensions = [
 
 const todayIso8601 = new Date().toISOString().substring(0, 10);
 
-export function Write() {
+export default function Write() {
   /**
    * YYYY-MM-DD
    */

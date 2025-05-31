@@ -8,17 +8,17 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { useRouter } from "next/router";
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router";
 import { API } from "../api";
 import { loginSuccess } from "../store";
 import { notifyFailure } from "../utils";
 
-export function Login() {
+export default function Login() {
   const dispatch = useDispatch();
 
-  const navigate = useNavigate();
+  const router = useRouter();
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -37,7 +37,7 @@ export function Login() {
       return notifyFailure(output.error);
     }
     dispatch(loginSuccess(output.data));
-    navigate("/");
+    router.push("/");
   };
 
   return (

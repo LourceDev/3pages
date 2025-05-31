@@ -1,5 +1,9 @@
 import { Slide, toast, ToastOptions, TypeOptions } from "react-toastify";
 
+export function isClient() {
+  return typeof window !== "undefined";
+}
+
 function createNotifyFunction(type: TypeOptions) {
   return (message: string, options?: ToastOptions) => {
     toast(message, {

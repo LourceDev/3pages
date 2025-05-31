@@ -8,13 +8,13 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { useRouter } from "next/router";
 import React, { useState } from "react";
-import { useNavigate } from "react-router";
 import { API } from "../api";
 import { notifyFailure } from "../utils";
 
-export function Signup() {
-  const navigate = useNavigate();
+export default function Signup() {
+  const router = useRouter();
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -35,7 +35,7 @@ export function Signup() {
     if (!output.success) {
       return notifyFailure(output.error);
     }
-    navigate("/login");
+    router.push("/login");
   };
 
   return (
