@@ -1,3 +1,4 @@
+import { Button } from "@mui/material";
 import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -17,7 +18,10 @@ import { Paragraph } from "@tiptap/extension-paragraph";
 import { Text } from "@tiptap/extension-text";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { useState } from "react";
-import { notifySuccess } from "../utils";
+import { useSelector } from "react-redux";
+import { API } from "../api";
+import { RootState } from "../store";
+import { notifyFailure, notifySuccess } from "../utils";
 
 function countWords(text: string) {
   // TODO: this is not efficient, improve it
@@ -84,6 +88,7 @@ const today = new Date().toLocaleDateString("en-GB", {
 });
 
 export function Write() {
+  const token = useSelector((state: RootState) => state.app.token);
   // TODO: set this to 750 later
   const wordLimit = 15;
   // used to ensure that the success message is shown only once
@@ -91,6 +96,7 @@ export function Write() {
   const editor = useEditor({
     extensions,
     editorProps,
+    // TODO: get content from server
     // content,
     autofocus: true,
     onUpdate(props) {
@@ -113,6 +119,10 @@ export function Write() {
     return null;
   }
 
+  if (!token) {
+    return <div>Unauthorized</div>;
+  }
+
   return (
     <Stack spacing={4} alignItems={"center"}>
       <div>{/* added for spacing */}</div>
@@ -131,6 +141,22 @@ export function Write() {
               {wordCount} words
             </Typography>
           </Stack>
+          <Button
+            variant="contained"
+            onClick={async () => {
+              const entry = {
+                date: new Date().toISOString().substring(0, 10),
+                text: editor.getJSON(),
+              };
+              console.log(entry);
+              const output = await API.putEntry(token, entry);
+              if (!output.success) {
+                return notifyFailure(output.error);
+              }
+            }}
+          >
+            Submit
+          </Button>
         </Stack>
       </Container>
     </Stack>

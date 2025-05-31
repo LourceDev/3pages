@@ -91,7 +91,39 @@ async function login(
   }
 }
 
+async function putEntry(
+  token: string,
+  body: z.infer<typeof schema.entryInput>
+): Promise<Result<null, string>> {
+  const parsed = schema.entryInput.safeParse(body);
+  if (!parsed.success) {
+    console.error(parsed.error);
+    return error("parse error");
+  }
+
+  try {
+    const resp = await fetch(`${baseUrl}/api/entry`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `bearer ${token}`,
+      },
+    });
+
+    if (!resp.ok) {
+      console.error(resp.statusText);
+      return error(resp.statusText);
+    }
+    return success(null);
+  } catch (err) {
+    console.error(err);
+    return error("other error");
+  }
+}
+
 export const API = {
   signup,
   login,
+  putEntry,
 };
