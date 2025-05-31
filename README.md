@@ -8,8 +8,7 @@
     - [.env.development](#envdevelopment)
       - [Generate JWT_SECRET](#generate-jwt_secret)
       - [Example .env.development file](#example-envdevelopment-file)
-    - [Start database](#start-database)
-    - [Run migrations](#run-migrations)
+    - [Set up database](#set-up-database)
     - [Start dev server](#start-dev-server)
   - [Client setup](#client-setup)
     - [Start client](#start-client)
@@ -38,16 +37,13 @@ NODE_ENV=development
 PORT=3000
 ```
 
-### Start database
+### Set up database
 
 ```sh
-npm run docker:db
-```
-
-### Run migrations
-
-```sh
-npm run dev:prisma migrate deploy
+npm run docker:db # start db in docker
+npm run dev:prisma migrate deploy # apply migrations
+npm run dev:prisma migrate dev # generate types
+npm run dev:prisma studio # optionally open prisma studio to view db
 ```
 
 ### Start dev server
@@ -66,6 +62,7 @@ npm run dev
 
 ## Ideas
 
+- autosave and <kbd>ctrl</kbd>+<kbd>s</kbd> support
 - make it self hostable, with configurable dbs, like sqlite, postgres, etc. (initial support only for postgres) (how to impl? use db abstraction layer ([ref](https://www.reddit.com/r/opensource/comments/z3p28p/comment/ixnig2t/)))
 - pwa support
 - default design should be minimal, use pastel and light colors, be cute and friendly
