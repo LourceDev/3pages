@@ -25,7 +25,7 @@ model User {
 model Entry {
   userId    Int
   date      DateTime
-  text      String   @db.Text
+  text      Json
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
 

@@ -1,3 +1,4 @@
+import type { JSONContent } from "@tiptap/core";
 import { z } from "zod";
 
 const requiredString = z.string().trim().min(1, "required");
@@ -21,9 +22,29 @@ const signupInput = z.strictObject({
   password,
 });
 
+const jsonContentSchema: z.ZodType<JSONContent> = z.lazy(
+  () =>
+    z
+      .object({
+        type: z.string().optional(),
+        attrs: z.record(z.any()).optional(),
+        content: z.array(jsonContentSchema).optional(),
+        marks: z
+          .array(
+            z.object({
+              type: z.string(),
+              attrs: z.record(z.any()).optional(),
+            })
+          )
+          .optional(),
+        text: z.string().optional(),
+      })
+      .passthrough() // allow other arbitrary keys
+);
+
 const entryInput = z.strictObject({
   date: requiredString.date(),
-  text: requiredString,
+  text: jsonContentSchema,
 });
 
 const getEntryInput = z.strictObject({
