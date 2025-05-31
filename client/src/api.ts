@@ -1,5 +1,9 @@
+import type { JSONContent } from "@tiptap/react";
 import { z } from "zod";
+import { HttpStatusCode } from "./utils";
 import { schema } from "./validation-schema";
+
+// TODO: Impl proper error handling. Currently we only indicate vague "parse error" and "other error".
 
 const baseUrl = "http://localhost:3000";
 
@@ -122,8 +126,52 @@ async function putEntry(
   }
 }
 
+export type GetEntryOutput = {
+  date: string;
+  text: JSONContent;
+  createdAt: string;
+  userId: number;
+};
+
+async function getEntry(
+  token: string,
+  body: z.infer<typeof schema.getEntryInput>
+): Promise<Result<GetEntryOutput | null, string>> {
+  const parsed = schema.getEntryInput.safeParse(body);
+  if (!parsed.success) {
+    console.error(parsed.error);
+    return error("parse error");
+  }
+
+  try {
+    const resp = await fetch(`${baseUrl}/api/entry/${body}`, {
+      method: "GET",
+      headers: {
+        Authorization: `bearer ${token}`,
+      },
+    });
+
+    // we don't care if entry for today's date exists or not
+    if (resp.status === HttpStatusCode.NOT_FOUND) {
+      return success(null);
+    }
+
+    // we do care if there are other errors
+    if (!resp.ok) {
+      console.error(resp.statusText);
+      return error(resp.statusText);
+    }
+    const output = (await resp.json()) as GetEntryOutput;
+    return success(output);
+  } catch (err) {
+    console.error(err);
+    return error("other error");
+  }
+}
+
 export const API = {
   signup,
   login,
   putEntry,
+  getEntry,
 };

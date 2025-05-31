@@ -47,8 +47,11 @@ const entryInput = z.strictObject({
   text: jsonContentSchema,
 });
 
+const getEntryInput = requiredString.date();
+
 export const schema = {
   signupInput,
   loginInput,
   entryInput,
+  getEntryInput,
 };

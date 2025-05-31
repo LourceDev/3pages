@@ -17,7 +17,7 @@ import { OrderedList } from "@tiptap/extension-ordered-list";
 import { Paragraph } from "@tiptap/extension-paragraph";
 import { Text } from "@tiptap/extension-text";
 import { EditorContent, useEditor } from "@tiptap/react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { API } from "../api";
 import { RootState } from "../store";
@@ -81,23 +81,21 @@ const extensions = [
   Text,
 ];
 
-const today = new Date().toLocaleDateString("en-GB", {
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-});
+const todayIso8601 = new Date().toISOString().substring(0, 10);
 
 export function Write() {
+  /**
+   * YYYY-MM-DD
+   */
   const token = useSelector((state: RootState) => state.app.token);
   // TODO: set this to 750 later
   const wordLimit = 15;
   // used to ensure that the success message is shown only once
   const [successMessageShown, setSuccessMessageShown] = useState(false);
+  const editorRef = useRef<HTMLDivElement>(null);
   const editor = useEditor({
     extensions,
     editorProps,
-    // TODO: get content from server
-    // content,
     autofocus: true,
     onUpdate(props) {
       // TODO: this is not efficient, improve it
@@ -115,6 +113,31 @@ export function Write() {
     countWords(editor?.getText() || "")
   );
 
+  useEffect(() => {
+    if (!token) return;
+    if (!editor) return;
+
+    const asyncFn = async () => {
+      if (!editorRef.current) return;
+
+      // TODO: disabling the editor is ugly, we can do better later
+      editor.setEditable(false);
+      editor.commands.setContent("Loading...");
+      editorRef.current.style.cursor = "not-allowed";
+
+      const output = await API.getEntry(token, todayIso8601);
+
+      editor.setEditable(true);
+      editorRef.current.style.cursor = "text";
+
+      if (!output.success) return notifyFailure(output.error);
+      if (output.data === null) editor.commands.setContent("");
+      else editor.commands.setContent(output.data.text);
+    };
+
+    asyncFn();
+  }, [token, editor, editorRef]);
+
   if (!editor) {
     return null;
   }
@@ -129,14 +152,18 @@ export function Write() {
       <Container>
         <Stack spacing={4}>
           <Typography variant="h4" gutterBottom align="center">
-            {today}
+            {new Date().toLocaleDateString("en-GB", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
           </Typography>
 
           <Stack spacing={1}>
             {
               // TODO: add a toolbar
             }
-            <EditorContent editor={editor} />
+            <EditorContent editor={editor} ref={editorRef} />
             <Typography variant="caption" align="right">
               {wordCount} words
             </Typography>
@@ -144,8 +171,9 @@ export function Write() {
           <Button
             variant="contained"
             onClick={async () => {
+              // TODO: this impl is temporary, implement auto save and ctrl+s save in future
               const entry = {
-                date: new Date().toISOString().substring(0, 10),
+                date: todayIso8601,
                 text: editor.getJSON(),
               };
               console.log(entry);
