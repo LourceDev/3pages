@@ -55,6 +55,7 @@ export function Navbar() {
         }
         <AdbIcon sx={{ display: { xs: "none", md: "flex" }, mr: 1 }} />
         {/* Website name */}
+        {/* @ts-expect-error typescript doesn't like us using another component as a link */}
         <Typography
           variant="h6"
           noWrap
@@ -71,7 +72,6 @@ export function Navbar() {
         >
           {WEBSITE_NAME}
         </Typography>
-
         {/* --------------------- mobile view nav links --------------------- */}
         <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
           <IconButton
@@ -100,7 +100,9 @@ export function Navbar() {
             sx={{ display: { xs: "block", md: "none" } }}
           >
             {pages.map((page) => (
+              // TODO: link should be on MenuItem, not on Typography
               <MenuItem key={page.url} onClick={handleCloseNavMenu}>
+                {/* @ts-expect-error typescript doesn't like us using another component as a link */}
                 <Typography
                   sx={{
                     textAlign: "center",
@@ -116,7 +118,6 @@ export function Navbar() {
             ))}
           </Menu>
         </Box>
-
         {/* -------------------- mobile view logo --------------------- */}
         <AdbIcon sx={{ display: { xs: "flex", md: "none" }, mr: 1 }} />
         <Typography
@@ -136,7 +137,6 @@ export function Navbar() {
         >
           {WEBSITE_NAME}
         </Typography>
-
         {/* ------------------------- desktop view nav links ------------------------- */}
         <Box
           sx={{
@@ -158,7 +158,6 @@ export function Navbar() {
           ))}
         </Box>
         <Box mr={2} display={{ xs: "none", md: "initial" }} />
-
         {/* ------------------------- logged in user profile ------------------------- */}
         <Box sx={{ flexGrow: 0 }}>
           <Tooltip title="Open settings">

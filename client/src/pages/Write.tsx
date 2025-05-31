@@ -1,4 +1,4 @@
-import { Button } from "@mui/material";
+import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -38,20 +38,6 @@ const messages = [
   "🔥 Nice work!",
   "🎶 That’s a wrap!",
 ];
-
-const content = `<h1>h1</h1>
-
-<h2>h2</h2>
-
-<h3>h3</h3>
-
-<h4>h4</h4>
-
-<h5>h5</h5>
-
-<h6>h6</h6>
-
-<p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsam repellat ad maiores quaerat sit. Ducimus quasi quod minima, est quos nihil commodi neque cum illum exercitationem? Perferendis quaerat consectetur voluptatum?</p><p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsam repellat ad maiores quaerat sit. Ducimus quasi quod minima, est quos nihil commodi neque cum illum exercitationem? Perferendis quaerat consectetur voluptatum?</p><p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsam repellat ad maiores quaerat sit. Ducimus quasi quod minima, est quos nihil commodi neque cum illum exercitationem? Perferendis quaerat consectetur voluptatum?</p><p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsam repellat ad maiores quaerat sit. Ducimus quasi quod minima, est quos nihil commodi neque cum illum exercitationem? Perferendis quaerat consectetur voluptatum?</p>`;
 
 const editorProps = {
   attributes: {
