@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import env from "./env";
+import { env } from "./env";
 import { newLogger } from "./logger";
 
 export let db: PrismaClient;

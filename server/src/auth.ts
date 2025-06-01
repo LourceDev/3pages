@@ -8,7 +8,7 @@ import {
   StrategyOptionsWithRequest,
 } from "passport-jwt";
 import { db } from "./db";
-import env from "./env";
+import { env } from "./env";
 import { newLogger } from "./logger";
 import { catchAll, HttpStatusCode, inputError } from "./utils";
 import { schema } from "./validation-schema";

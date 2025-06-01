@@ -6,7 +6,7 @@ function safeEnv(key: string): string {
   return value;
 }
 
-export default {
+export const env = {
   DATABASE_URL: safeEnv("DATABASE_URL"),
   JWT_SECRET: safeEnv("JWT_SECRET"),
   NODE_ENV: safeEnv("NODE_ENV"),

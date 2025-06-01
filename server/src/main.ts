@@ -2,7 +2,7 @@ import { configDotenv } from "dotenv";
 configDotenv({ path: ".env.development" });
 
 import { connectDb } from "./db";
-import env from "./env";
+import { env } from "./env";
 import { newLogger } from "./logger";
 import { startServer } from "./server";
 
