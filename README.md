@@ -5,36 +5,37 @@
 - [3pages](#3pages)
   - [Table of contents](#table-of-contents)
   - [Server setup](#server-setup)
+    - [Install dependencies](#install-dependencies)
     - [.env.development](#envdevelopment)
-      - [Generate JWT_SECRET](#generate-jwt_secret)
-      - [Example .env.development file](#example-envdevelopment-file)
     - [Set up database](#set-up-database)
     - [Start dev server](#start-dev-server)
   - [Client setup](#client-setup)
+    - [Install dependencies](#install-dependencies-1)
+    - [.env](#env)
     - [Start client](#start-client)
+  - [Todos](#todos)
   - [Ideas](#ideas)
 
 ---
 
 ## Server setup
 
-### .env.development
+### Install dependencies
 
-#### Generate JWT_SECRET
+```sh
+npm install
+```
+
+### .env.development
 
 <!-- https://www.digitalocean.com/community/tutorials/nodejs-jwt-expressjs#step-1-generating-a-token -->
 
-```sh
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'));"
-```
-
-#### Example .env.development file
-
 ```
 DATABASE_URL="postgresql://myuser:mypassword@127.0.0.1:5432/mydb?schema=public"
+# generate JWT_SECRET: $ node -e "console.log(require('crypto').randomBytes(32).toString('hex'));"
 JWT_SECRET=
 NODE_ENV=development
-PORT=3000
+PORT=3030
 ```
 
 ### Set up database
@@ -42,7 +43,7 @@ PORT=3000
 ```sh
 npm run docker:db # start db in docker
 npm run dev:prisma migrate deploy # apply migrations
-npm run dev:prisma migrate dev # generate types
+npm run dev:prisma generate # generate types
 npm run dev:prisma studio # optionally open prisma studio to view db
 ```
 
@@ -53,6 +54,18 @@ npm run dev
 ```
 
 ## Client setup
+
+### Install dependencies
+
+```sh
+npm install
+```
+
+### .env
+
+```
+NEXT_PUBLIC_SERVER_BASE_URL=http://localhost:3030
+```
 
 ### Start client
 

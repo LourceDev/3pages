@@ -1,11 +1,12 @@
 import type { JSONContent } from "@tiptap/react";
 import { z } from "zod";
+import { env } from "./env";
 import { HttpStatusCode } from "./utils";
 import { schema } from "./validation-schema";
 
 // TODO: Impl proper error handling. Currently we only indicate vague "parse error" and "other error".
 
-const baseUrl = "http://localhost:3000";
+const baseUrl = env.NEXT_PUBLIC_SERVER_BASE_URL;
 
 type Success<T> = { success: true; data: T };
 type Error<E> = { success: false; error: E };
