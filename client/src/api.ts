@@ -1,8 +1,8 @@
+import { env } from "@/env";
+import { HttpStatusCode } from "@/utils";
+import { schema } from "@/validation-schema";
 import type { JSONContent } from "@tiptap/react";
 import { z } from "zod";
-import { env } from "./env";
-import { HttpStatusCode } from "./utils";
-import { schema } from "./validation-schema";
 
 // TODO: Impl proper error handling. Currently we only indicate vague "parse error" and "other error".
 

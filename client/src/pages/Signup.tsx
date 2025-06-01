@@ -1,3 +1,5 @@
+import { API } from "@/api";
+import { notifyFailure } from "@/utils";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import {
   Box,
@@ -10,8 +12,6 @@ import {
 } from "@mui/material";
 import { useRouter } from "next/router";
 import React, { useState } from "react";
-import { API } from "../api";
-import { notifyFailure } from "../utils";
 
 export default function Signup() {
   const router = useRouter();

@@ -1,7 +1,7 @@
+import { RootState } from "@/store";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import { useSelector } from "react-redux";
-import { RootState } from "../store";
 
 export default function Home() {
   const { user } = useSelector((state: RootState) => state.app);

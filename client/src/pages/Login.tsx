@@ -1,3 +1,6 @@
+import { API } from "@/api";
+import { loginSuccess } from "@/store";
+import { notifyFailure } from "@/utils";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import {
   Box,
@@ -11,9 +14,6 @@ import {
 import { useRouter } from "next/router";
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import { API } from "../api";
-import { loginSuccess } from "../store";
-import { notifyFailure } from "../utils";
 
 export default function Login() {
   const dispatch = useDispatch();

@@ -1,7 +1,7 @@
+import { LoginOutput } from "@/api";
+import { isClient } from "@/utils";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import { configureStore, createSlice } from "@reduxjs/toolkit";
-import { LoginOutput } from "./api";
-import { isClient } from "./utils";
 
 export interface AppState {
   token: string | null;

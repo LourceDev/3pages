@@ -1,3 +1,6 @@
+import { API } from "@/api";
+import { RootState } from "@/store";
+import { notifyFailure, notifySuccess } from "@/utils";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
@@ -20,9 +23,6 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import dayjs from "dayjs";
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
-import { API } from "../api";
-import { RootState } from "../store";
-import { notifyFailure, notifySuccess } from "../utils";
 
 function countWords(text: string) {
   // TODO: this is not efficient, improve it
