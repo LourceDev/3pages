@@ -17,6 +17,7 @@ import { OrderedList } from "@tiptap/extension-ordered-list";
 import { Paragraph } from "@tiptap/extension-paragraph";
 import { Text } from "@tiptap/extension-text";
 import { EditorContent, useEditor } from "@tiptap/react";
+import dayjs from "dayjs";
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { API } from "../api";
@@ -67,12 +68,12 @@ const extensions = [
   Text,
 ];
 
-const todayIso8601 = new Date().toISOString().substring(0, 10);
+/**
+ * YYYY-MM-DD in user's timezone
+ */
+const todayIso8601 = dayjs().format("YYYY-MM-DD");
 
 export default function Write() {
-  /**
-   * YYYY-MM-DD
-   */
   const token = useSelector((state: RootState) => state.app.token);
   // TODO: set this to 750 later
   const wordLimit = 15;
@@ -82,6 +83,7 @@ export default function Write() {
   const editor = useEditor({
     extensions,
     editorProps,
+    immediatelyRender: false,
     autofocus: true,
     onUpdate(props) {
       // TODO: this is not efficient, improve it
@@ -138,11 +140,7 @@ export default function Write() {
       <Container>
         <Stack spacing={4}>
           <Typography variant="h4" gutterBottom align="center">
-            {new Date().toLocaleDateString("en-GB", {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            })}
+            {dayjs().format("D MMMM YYYY")}
           </Typography>
 
           <Stack spacing={1}>

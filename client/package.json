@@ -21,6 +21,7 @@
     "@tiptap/pm": "^2.11.7",
     "@tiptap/react": "^2.11.7",
     "@tiptap/starter-kit": "^2.11.7",
+    "dayjs": "^1.11.13",
     "next": "15.3.3",
     "postcss": "^8.5.4",
     "react": "^19.0.0",
