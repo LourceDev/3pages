@@ -31,14 +31,14 @@ apiRouter.put(
       // insert or update entry
       const user = req.user as User;
       const entry = {
-        date: new Date(input.data.date).toISOString(),
+        date: new Date(input.data.date),
         text: input.data.text,
         userId: user.id,
       };
       await db.entry.upsert({
         where: {
           userId_date: {
-            date: new Date(input.data.date).toISOString(),
+            date: new Date(input.data.date),
             userId: user.id,
           },
         },
@@ -66,7 +66,7 @@ apiRouter.get(
         where: {
           userId_date: {
             userId: user.id,
-            date: new Date(input.data.date).toISOString(),
+            date: new Date(input.data.date),
           },
         },
       });

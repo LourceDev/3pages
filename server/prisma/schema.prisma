@@ -24,6 +24,9 @@ model User {
 
 model Entry {
   userId    Int
+  // date is only used for storing YYYY-MM-DD, but due to limitation of Prisma, 
+  // we use DateTime type which includes time as well.
+  // hence, ignore the time part
   date      DateTime
   text      Json
   createdAt DateTime @default(now())
