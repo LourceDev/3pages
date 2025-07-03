@@ -1,3 +1,12 @@
 @layer theme, base, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
+
+/* https://tiptap.dev/docs/editor/extensions/functionality/placeholder */
+.tiptap p.is-editor-empty:first-child:before {
+  color: rgba(53, 38, 28, 0.3);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}

@@ -18,6 +18,7 @@ import { Italic } from "@tiptap/extension-italic";
 import { ListItem } from "@tiptap/extension-list-item";
 import { OrderedList } from "@tiptap/extension-ordered-list";
 import { Paragraph } from "@tiptap/extension-paragraph";
+import Placeholder from "@tiptap/extension-placeholder";
 import { Text } from "@tiptap/extension-text";
 import { EditorContent, useEditor } from "@tiptap/react";
 import dayjs from "dayjs";
@@ -66,6 +67,10 @@ const extensions = [
     },
   }),
   Text,
+  Placeholder.configure({
+    placeholder: "Write something…",
+    showOnlyWhenEditable: false,
+  }),
 ];
 
 /**
@@ -105,13 +110,13 @@ export default function Write() {
     if (!token) return;
     if (!editor) return;
 
+    // fetch and set existing entry for today
     const asyncFn = async () => {
       if (!editorRef.current) return;
 
       // TODO: disabling the editor is ugly, we can do better later
       editor.setEditable(false);
-      editor.commands.setContent("Loading...");
-      editorRef.current.style.cursor = "not-allowed";
+      editorRef.current.style.cursor = "wait";
 
       const output = await API.getEntry(token, todayIso8601);
 
