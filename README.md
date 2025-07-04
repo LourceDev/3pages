@@ -31,7 +31,7 @@ npm install
 <!-- https://www.digitalocean.com/community/tutorials/nodejs-jwt-expressjs#step-1-generating-a-token -->
 
 ```
-DATABASE_URL="postgresql://myuser:mypassword@127.0.0.1:5432/mydb?schema=public"
+DATABASE_URL="file:./dev.db"
 # generate JWT_SECRET: $ node -e "console.log(require('crypto').randomBytes(32).toString('hex'));"
 JWT_SECRET=
 NODE_ENV=development
@@ -43,6 +43,7 @@ PORT=3030
 ```sh
 npm run docker:db # start db in docker
 npm run dev:prisma migrate deploy # apply migrations
+# npm run dev:prisma db push # in case we throw away migrations, push the current schema to db
 npm run dev:prisma generate # generate types
 npm run dev:prisma studio # optionally open prisma studio to view db
 ```
