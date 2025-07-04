@@ -1,9 +1,13 @@
 import { API } from "@/api";
 import { RootState } from "@/store";
 import { notifyFailure, notifySuccess } from "@/utils";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
+import { useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
 import { Bold } from "@tiptap/extension-bold";
 import { BulletList } from "@tiptap/extension-bullet-list";
@@ -80,6 +84,7 @@ const todayIso8601 = dayjs().format("YYYY-MM-DD");
 
 export default function Write() {
   const token = useSelector((state: RootState) => state.app.token);
+  const theme = useTheme();
   // TODO: set this to 750 later
   const wordLimit = 15;
   // used to ensure that the success message is shown only once
@@ -126,6 +131,8 @@ export default function Write() {
       if (!output.success) return notifyFailure(output.error);
       if (output.data === null) editor.commands.setContent("");
       else editor.commands.setContent(output.data.text);
+
+      editor.commands.focus();
     };
 
     asyncFn();
@@ -144,10 +151,42 @@ export default function Write() {
       <div>{/* added for spacing */}</div>
       <Container>
         <Stack spacing={4}>
-          <Typography variant="h4" gutterBottom align="center">
-            {dayjs().format("D MMMM YYYY")}
-          </Typography>
-
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Button startIcon={<ChevronLeftIcon />}>
+              <Box
+                component={"span"}
+                sx={{
+                  [theme.breakpoints.down("sm")]: {
+                    display: "none",
+                  },
+                }}
+              >
+                {dayjs().subtract(1, "day").format("D MMMM YYYY")}
+              </Box>
+            </Button>
+            <Button sx={{ fontSize: "1.4rem" }}>
+              {dayjs().format("D MMMM YYYY")}
+            </Button>
+            <Button endIcon={<ChevronRightIcon />}>
+              <Box
+                component={"span"}
+                sx={{
+                  [theme.breakpoints.down("sm")]: {
+                    display: "none",
+                  },
+                }}
+              >
+                {dayjs().add(1, "day").format("D MMMM YYYY")}
+              </Box>
+            </Button>
+          </Box>
           <Stack spacing={1}>
             {
               // TODO: add a toolbar
