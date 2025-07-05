@@ -41,7 +41,6 @@ PORT=3030
 ### Set up database
 
 ```sh
-npm run docker:db # start db in docker
 npm run dev:prisma migrate deploy # apply migrations
 # npm run dev:prisma db push # in case we throw away migrations, push the current schema to db
 npm run dev:prisma generate # generate types
