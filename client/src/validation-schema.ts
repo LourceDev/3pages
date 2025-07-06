@@ -48,10 +48,12 @@ const entryInput = z.strictObject({
 });
 
 const getEntryInput = requiredString.date();
+const deleteEntryInput = requiredString.date();
 
 export const schema = {
   signupInput,
   loginInput,
   entryInput,
   getEntryInput,
+  deleteEntryInput,
 };

@@ -1,4 +1,5 @@
 import { User } from "@prisma/client";
+import dayjs from "dayjs";
 import express from "express";
 import passport from "passport";
 import { authRouter } from "./auth";
@@ -54,6 +55,26 @@ apiRouter.put(
 );
 
 apiRouter.get(
+  "/entry/dates",
+  passport.authenticate("jwt", { session: false }),
+  async (req, res) => {
+    const logger = newLogger("get all entry dates");
+    try {
+      const user = req.user as User;
+      const entries = await db.entry.findMany({
+        where: {
+          userId: user.id,
+        },
+      });
+      res.json(entries.map((e) => dayjs(e.date).format("YYYY-MM-DD")));
+      return;
+    } catch (err) {
+      return catchAll(logger, err, res);
+    }
+  }
+);
+
+apiRouter.get(
   "/entry/:date",
   passport.authenticate("jwt", { session: false }),
   async (req, res) => {
@@ -75,6 +96,29 @@ apiRouter.get(
         return;
       }
       res.json(entry);
+      return;
+    } catch (err) {
+      return catchAll(logger, err, res);
+    }
+  }
+);
+
+apiRouter.delete(
+  "/entry/:date",
+  passport.authenticate("jwt", { session: false }),
+  async (req, res) => {
+    const logger = newLogger("delete entry");
+    try {
+      const input = schema.deleteEntryInput.safeParse(req.params);
+      if (!input.success) return inputError(logger, input.error, res);
+      const user = req.user as User;
+      await db.entry.deleteMany({
+        where: {
+          userId: user.id,
+          date: new Date(input.data.date),
+        },
+      });
+      res.sendStatus(HttpStatusCode.NO_CONTENT);
       return;
     } catch (err) {
       return catchAll(logger, err, res);

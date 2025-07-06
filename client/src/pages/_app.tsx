@@ -6,6 +6,8 @@ import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import { createTheme, CssBaseline, ThemeProvider } from "@mui/material";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { AppProps } from "next/app";
 import { useEffect } from "react";
 import { Provider, useDispatch } from "react-redux";
@@ -21,12 +23,14 @@ function InnerApp({ Component, pageProps }: AppProps) {
   }, [dispatch]);
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <ToastContainer />
-      <Navbar />
-      <Component {...pageProps} />
-    </ThemeProvider>
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <ToastContainer />
+        <Navbar />
+        <Component {...pageProps} />
+      </ThemeProvider>
+    </LocalizationProvider>
   );
 }
 

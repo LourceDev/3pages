@@ -170,9 +170,62 @@ async function getEntry(
   }
 }
 
+async function deleteEntry(
+  token: string,
+  body: z.infer<typeof schema.deleteEntryInput>
+): Promise<Result<null, string>> {
+  const parsed = schema.deleteEntryInput.safeParse(body);
+  if (!parsed.success) {
+    console.error(parsed.error);
+    return error("parse error");
+  }
+
+  try {
+    const resp = await fetch(`${baseUrl}/api/entry/${body}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `bearer ${token}`,
+      },
+    });
+
+    if (!resp.ok) {
+      console.error(resp.statusText);
+      return error(resp.statusText);
+    }
+
+    return success(null);
+  } catch (err) {
+    console.error(err);
+    return error("other error");
+  }
+}
+
+export type GetAllEntryDatesOutput = Set<string>;
+
+async function getAllEntryDates(
+  token: string
+): Promise<Result<GetAllEntryDatesOutput, string>> {
+  try {
+    const resp = await fetch(`${baseUrl}/api/entry/dates`, {
+      method: "GET",
+      headers: {
+        Authorization: `bearer ${token}`,
+      },
+    });
+
+    const output = new Set<string>(await resp.json());
+    return success(output);
+  } catch (err) {
+    console.error(err);
+    return error("other error");
+  }
+}
+
 export const API = {
   signup,
   login,
   putEntry,
   getEntry,
+  deleteEntry,
+  getAllEntryDates,
 };
