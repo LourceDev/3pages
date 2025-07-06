@@ -2,15 +2,7 @@ import { API } from "@/api";
 import { loginSuccess } from "@/store";
 import { notifyFailure } from "@/utils";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import {
-  Box,
-  Button,
-  Container,
-  IconButton,
-  InputAdornment,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Container, IconButton, InputAdornment, TextField, Typography } from "@mui/material";
 import { useRouter } from "next/router";
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
@@ -77,11 +69,7 @@ export default function Login() {
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowPassword(!showPassword)}
-                    edge="end"
-                    size="small"
-                  >
+                  <IconButton onClick={() => setShowPassword(!showPassword)} edge="end" size="small">
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
                 </InputAdornment>
@@ -89,13 +77,7 @@ export default function Login() {
             }}
           />
 
-          <Button
-            fullWidth
-            variant="contained"
-            color="primary"
-            type="submit"
-            sx={{ mt: 3 }}
-          >
+          <Button fullWidth variant="contained" color="primary" type="submit" sx={{ mt: 3 }}>
             Log In
           </Button>
         </form>

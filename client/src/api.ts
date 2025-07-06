@@ -24,9 +24,7 @@ type SignupOutput = {
   message: string;
 };
 
-async function signup(
-  body: z.infer<typeof schema.signupInput>
-): Promise<Result<SignupOutput, string>> {
+async function signup(body: z.infer<typeof schema.signupInput>): Promise<Result<SignupOutput, string>> {
   const parsed = schema.signupInput.safeParse(body);
   if (!parsed.success) {
     console.error(parsed.error);
@@ -65,9 +63,7 @@ export type LoginOutput = {
   };
 };
 
-async function login(
-  body: z.infer<typeof schema.loginInput>
-): Promise<Result<LoginOutput, string>> {
+async function login(body: z.infer<typeof schema.loginInput>): Promise<Result<LoginOutput, string>> {
   const parsed = schema.loginInput.safeParse(body);
   if (!parsed.success) {
     console.error(parsed.error);
@@ -96,10 +92,7 @@ async function login(
   }
 }
 
-async function putEntry(
-  token: string,
-  body: z.infer<typeof schema.entryInput>
-): Promise<Result<null, string>> {
+async function putEntry(token: string, body: z.infer<typeof schema.entryInput>): Promise<Result<null, string>> {
   const parsed = schema.entryInput.safeParse(body);
   if (!parsed.success) {
     console.error(parsed.error);
@@ -136,7 +129,7 @@ export type GetEntryOutput = {
 
 async function getEntry(
   token: string,
-  body: z.infer<typeof schema.getEntryInput>
+  body: z.infer<typeof schema.getEntryInput>,
 ): Promise<Result<GetEntryOutput | null, string>> {
   const parsed = schema.getEntryInput.safeParse(body);
   if (!parsed.success) {
@@ -172,7 +165,7 @@ async function getEntry(
 
 async function deleteEntry(
   token: string,
-  body: z.infer<typeof schema.deleteEntryInput>
+  body: z.infer<typeof schema.deleteEntryInput>,
 ): Promise<Result<null, string>> {
   const parsed = schema.deleteEntryInput.safeParse(body);
   if (!parsed.success) {
@@ -202,9 +195,7 @@ async function deleteEntry(
 
 export type GetAllEntryDatesOutput = Set<string>;
 
-async function getAllEntryDates(
-  token: string
-): Promise<Result<GetAllEntryDatesOutput, string>> {
+async function getAllEntryDates(token: string): Promise<Result<GetAllEntryDatesOutput, string>> {
   try {
     const resp = await fetch(`${baseUrl}/api/entry/dates`, {
       method: "GET",

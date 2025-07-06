@@ -4,9 +4,7 @@ import { ZodError } from "zod";
 
 export function inputError(logger: Logger, error: ZodError, res: Response) {
   logger.error(JSON.stringify(error.errors));
-  res
-    .status(HttpStatusCode.BAD_REQUEST)
-    .json({ error: error.errors.map((e) => e.message) });
+  res.status(HttpStatusCode.BAD_REQUEST).json({ error: error.errors.map((e) => e.message) });
 }
 
 export function catchAll(logger: Logger, error: any, res: Response) {

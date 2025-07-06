@@ -15,8 +15,5 @@ function safeEnv(key: string, value: string | undefined): string {
 }
 
 export const env = {
-  NEXT_PUBLIC_SERVER_BASE_URL: safeEnv(
-    "NEXT_PUBLIC_SERVER_BASE_URL",
-    process.env.NEXT_PUBLIC_SERVER_BASE_URL
-  ),
+  NEXT_PUBLIC_SERVER_BASE_URL: safeEnv("NEXT_PUBLIC_SERVER_BASE_URL", process.env.NEXT_PUBLIC_SERVER_BASE_URL),
 };

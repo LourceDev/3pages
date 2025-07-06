@@ -30,11 +30,7 @@ import { OrderedList } from "@tiptap/extension-ordered-list";
 import { Paragraph } from "@tiptap/extension-paragraph";
 import Placeholder from "@tiptap/extension-placeholder";
 import { Text } from "@tiptap/extension-text";
-import {
-  EditorContent,
-  Editor as TiptapEditor,
-  useEditor,
-} from "@tiptap/react";
+import { EditorContent, Editor as TiptapEditor, useEditor } from "@tiptap/react";
 import dayjs, { Dayjs } from "dayjs";
 import { RefObject, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
@@ -52,8 +48,7 @@ const messages = [
 
 const editorProps = {
   attributes: {
-    class:
-      "border-2 border-gray-300 rounded-md p-4 focus:outline-none focus:border-blue-500 text-xl",
+    class: "border-2 border-gray-300 rounded-md p-4 focus:outline-none focus:border-blue-500 text-xl",
   },
 };
 
@@ -101,23 +96,11 @@ type DatePickerDayProps = PickersDayProps<Dayjs> & {
 
 function DatePickerDay(props: DatePickerDayProps) {
   const { highlightedDays, day, outsideCurrentMonth, ...other } = props;
-  const isSelected =
-    !props.outsideCurrentMonth &&
-    highlightedDays?.has(props.day.format("YYYY-MM-DD"));
+  const isSelected = !props.outsideCurrentMonth && highlightedDays?.has(props.day.format("YYYY-MM-DD"));
 
   return (
-    <Badge
-      key={props.day.toString()}
-      color="secondary"
-      variant="dot"
-      overlap="circular"
-      invisible={!isSelected}
-    >
-      <PickersDay
-        {...other}
-        outsideCurrentMonth={outsideCurrentMonth}
-        day={day}
-      />
+    <Badge key={props.day.toString()} color="secondary" variant="dot" overlap="circular" invisible={!isSelected}>
+      <PickersDay {...other} outsideCurrentMonth={outsideCurrentMonth} day={day} />
     </Badge>
   );
 }
@@ -268,12 +251,8 @@ export default function Write() {
     },
   });
   const [activeDate, setActiveDate] = useState(today);
-  const [highlightedDays, setHighlightedDays] = useState<
-    Set<string> | undefined
-  >();
-  const [wordCount, setWordCount] = useState(() =>
-    countWords(editor?.getText() || "")
-  );
+  const [highlightedDays, setHighlightedDays] = useState<Set<string> | undefined>();
+  const [wordCount, setWordCount] = useState(() => countWords(editor?.getText() || ""));
 
   useEffect(() => {
     if (!token) return;
@@ -318,11 +297,7 @@ export default function Write() {
     <Stack spacing={4} component={Container}>
       <div>{/* added for spacing */}</div>
 
-      <DateChangeToolbar
-        activeDate={activeDate}
-        setActiveDate={setActiveDate}
-        highlightedDays={highlightedDays}
-      />
+      <DateChangeToolbar activeDate={activeDate} setActiveDate={setActiveDate} highlightedDays={highlightedDays} />
 
       <Editor editor={editor} editorRef={editorRef} wordCount={wordCount} />
 
@@ -331,10 +306,7 @@ export default function Write() {
         onClick={async () => {
           // TODO: this impl is temporary, implement auto save and ctrl+s save in future
           if (editor.isEmpty) {
-            const output = await API.deleteEntry(
-              token,
-              activeDate.format("YYYY-MM-DD")
-            );
+            const output = await API.deleteEntry(token, activeDate.format("YYYY-MM-DD"));
             if (!output.success) return notifyFailure(output.error);
 
             setHighlightedDays((prev) => {

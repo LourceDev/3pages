@@ -11,8 +11,7 @@ export default function Home() {
       <div>{/* added for spacing */}</div>
       <Stack px={2}>
         <Box>
-          if logged in {user !== null ? `(hello ${user.name}!)` : ""}, show
-          dashboard here with stats like
+          if logged in {user !== null ? `(hello ${user.name}!)` : ""}, show dashboard here with stats like
           <ul>
             <li>if not written today, show prominent CTA button to write</li>
             <li>if written today, show today&#39;s stats</li>
@@ -27,10 +26,7 @@ export default function Home() {
           <ul>
             <li>hero section with CTA</li>
             <ul>
-              <li>
-                the main text should keep changing to reflect different use
-                cases
-              </li>
+              <li>the main text should keep changing to reflect different use cases</li>
             </ul>
             <li>Why use this?</li>
             <ul>

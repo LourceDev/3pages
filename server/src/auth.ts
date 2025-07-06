@@ -2,11 +2,7 @@ import * as argon2 from "argon2";
 import { Router } from "express";
 import jwt from "jsonwebtoken";
 import passport from "passport";
-import {
-  ExtractJwt,
-  Strategy as JwtStrategy,
-  StrategyOptionsWithRequest,
-} from "passport-jwt";
+import { ExtractJwt, Strategy as JwtStrategy, StrategyOptionsWithRequest } from "passport-jwt";
 import { db } from "./db";
 import { env } from "./env";
 import { newLogger } from "./logger";
@@ -74,9 +70,7 @@ authRouter.post("/signup", async (req, res) => {
       },
     });
     // return response
-    res
-      .status(HttpStatusCode.CREATED)
-      .json({ message: "User created successfully" });
+    res.status(HttpStatusCode.CREATED).json({ message: "User created successfully" });
     return;
   } catch (err) {
     return catchAll(logger, err, res);
@@ -97,23 +91,14 @@ authRouter.post("/login", async (req, res) => {
     const user = await db.user.findUnique({
       where: { email: parseResult.data.email },
     });
-    if (
-      user === null ||
-      !(await argon2.verify(user.password, parseResult.data.password))
-    ) {
-      res
-        .status(HttpStatusCode.UNAUTHORIZED)
-        .json({ error: "Incorrect email or password" });
+    if (user === null || !(await argon2.verify(user.password, parseResult.data.password))) {
+      res.status(HttpStatusCode.UNAUTHORIZED).json({ error: "Incorrect email or password" });
       return;
     }
     // Send a JWT token
-    const token = jwt.sign(
-      { userId: user.id } satisfies JwtPayload,
-      env.JWT_SECRET,
-      {
-        expiresIn: "7d",
-      }
-    );
+    const token = jwt.sign({ userId: user.id } satisfies JwtPayload, env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
     const { password: _, ...userWithoutPassword } = user;
     res.json({ token, user: userWithoutPassword });
     return;
