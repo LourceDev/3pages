@@ -2,9 +2,16 @@ import { LoginOutput } from "@/api";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import { configureStore, createSlice } from "@reduxjs/toolkit";
 
+export interface User {
+  id: number;
+  email: string;
+  name: string;
+  createdAt: string;
+}
+
 export interface AppState {
   token: string | null;
-  user: { id: number; email: string; name: string; createdAt: string } | null;
+  user: User | null;
 }
 
 const initialState: AppState = {
@@ -22,6 +29,12 @@ export const appSlice = createSlice({
       state.user = action.payload.user;
       localStorage.setItem("user", JSON.stringify(action.payload.user));
     },
+    logout(state) {
+      state.token = null;
+      localStorage.removeItem("token");
+      state.user = null;
+      localStorage.removeItem("user");
+    },
     rehydrate(state) {
       // only runs on client
       const token = localStorage.getItem("token");
@@ -33,7 +46,7 @@ export const appSlice = createSlice({
 });
 
 // Action creators are generated for each case reducer function
-export const { loginSuccess, rehydrate } = appSlice.actions;
+export const { loginSuccess, logout, rehydrate } = appSlice.actions;
 
 export const store = configureStore({
   reducer: {

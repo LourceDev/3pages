@@ -15,21 +15,21 @@ import Typography from "@mui/material/Typography";
 import { DayCalendarSkeleton } from "@mui/x-date-pickers/DayCalendarSkeleton";
 import { PickersDay, PickersDayProps } from "@mui/x-date-pickers/PickersDay";
 import { StaticDatePicker } from "@mui/x-date-pickers/StaticDatePicker";
-import { Bold } from "@tiptap/extension-bold";
-import { BulletList } from "@tiptap/extension-bullet-list";
-import { Document } from "@tiptap/extension-document";
-import { Dropcursor } from "@tiptap/extension-dropcursor";
-import { Gapcursor } from "@tiptap/extension-gapcursor";
-import { HardBreak } from "@tiptap/extension-hard-break";
-import { Heading } from "@tiptap/extension-heading";
-import { History } from "@tiptap/extension-history";
-import { HorizontalRule } from "@tiptap/extension-horizontal-rule";
-import { Italic } from "@tiptap/extension-italic";
-import { ListItem } from "@tiptap/extension-list-item";
-import { OrderedList } from "@tiptap/extension-ordered-list";
-import { Paragraph } from "@tiptap/extension-paragraph";
+import Bold from "@tiptap/extension-bold";
+import BulletList from "@tiptap/extension-bullet-list";
+import Document from "@tiptap/extension-document";
+import Dropcursor from "@tiptap/extension-dropcursor";
+import Gapcursor from "@tiptap/extension-gapcursor";
+import HardBreak from "@tiptap/extension-hard-break";
+import Heading from "@tiptap/extension-heading";
+import History from "@tiptap/extension-history";
+import HorizontalRule from "@tiptap/extension-horizontal-rule";
+import Italic from "@tiptap/extension-italic";
+import ListItem from "@tiptap/extension-list-item";
+import OrderedList from "@tiptap/extension-ordered-list";
+import Paragraph from "@tiptap/extension-paragraph";
 import Placeholder from "@tiptap/extension-placeholder";
-import { Text } from "@tiptap/extension-text";
+import Text from "@tiptap/extension-text";
 import { EditorContent, Editor as TiptapEditor, useEditor } from "@tiptap/react";
 import dayjs, { Dayjs } from "dayjs";
 import { RefObject, useEffect, useRef, useState } from "react";
@@ -118,28 +118,9 @@ function DateChangeToolbar(props: DateChangeToolbarProps) {
 
   return (
     <Stack spacing={2}>
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <Button
-          startIcon={<ChevronLeftIcon />}
-          onClick={() => {
-            setActiveDate(activeDate.subtract(1, "day"));
-          }}
-        >
-          <Box
-            component={"span"}
-            sx={{
-              [theme.breakpoints.down("sm")]: {
-                display: "none",
-              },
-            }}
-          >
+      <Box sx={{ display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+        <Button startIcon={<ChevronLeftIcon />} onClick={() => setActiveDate(activeDate.subtract(1, "day"))}>
+          <Box component={"span"} sx={{ [theme.breakpoints.down("sm")]: { display: "none" } }}>
             {activeDate.subtract(1, "day").format("D MMMM YYYY")}
           </Box>
         </Button>
@@ -156,46 +137,24 @@ function DateChangeToolbar(props: DateChangeToolbarProps) {
         </Button>
         <Button
           endIcon={<ChevronRightIcon />}
-          onClick={() => {
-            setActiveDate(activeDate.add(1, "day"));
-          }}
-          sx={{
-            visibility: activeDate.isSame(today, "day") ? "hidden" : undefined,
-          }}
+          onClick={() => setActiveDate(activeDate.add(1, "day"))}
+          sx={{ visibility: activeDate.isSame(today, "day") ? "hidden" : undefined }}
         >
-          <Box
-            component={"span"}
-            sx={{
-              [theme.breakpoints.down("sm")]: {
-                display: "none",
-              },
-            }}
-          >
+          <Box component={"span"} sx={{ [theme.breakpoints.down("sm")]: { display: "none" } }}>
             {activeDate.add(1, "day").format("D MMMM YYYY")}
           </Box>
         </Button>
       </Box>
-      <Box
-        sx={{
-          display: showCalendar ? "flex" : "none",
-          justifyContent: "center",
-        }}
-      >
+      <Box sx={{ display: showCalendar ? "flex" : "none", justifyContent: "center" }}>
         <StaticDatePicker
           value={activeDate}
           onChange={(value) => value && setActiveDate(value)}
           views={["year", "month", "day"]}
           renderLoading={() => <DayCalendarSkeleton />}
-          slots={{
-            day: DatePickerDay,
-          }}
+          slots={{ day: DatePickerDay }}
           slotProps={{
-            day: {
-              highlightedDays,
-            } as DatePickerDayProps,
-            actionBar: {
-              actions: ["today"],
-            },
+            day: { highlightedDays } as DatePickerDayProps,
+            actionBar: { actions: ["today"] },
             toolbar: { hidden: true },
           }}
           displayWeekNumber
