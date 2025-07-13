@@ -1,0 +1,13 @@
+{
+  "name": "rs-server",
+  "devDependencies": {
+    "prisma": "^6.11.1"
+  },
+  "scripts": {
+    "migrate": "prisma migrate dev --skip-generate",
+    "studio": "prisma studio"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.11.1"
+  }
+}

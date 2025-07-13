@@ -4,7 +4,8 @@ use argon2::{
 };
 use axum::{
     Router,
-    extract::Json,
+    extract::{Json, State},
+    http::StatusCode,
     routing::{get, post},
 };
 use dotenvy::dotenv;
@@ -12,6 +13,7 @@ use log::info;
 use rand_core::OsRng;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use sqlx::SqlitePool;
 use std::env;
 use tower_http::trace::TraceLayer;
 
@@ -25,9 +27,16 @@ async fn main() {
     // ref: https://github.com/tokio-rs/tracing/blob/tracing-subscriber-0.3.19/README.md
     tracing_subscriber::fmt::init();
 
+    let pool = SqlitePool::connect(&env::var("DATABASE_URL").expect("DATABASE_URL not set"))
+        .await
+        .expect("Failed to connect to the database");
+
     let app = Router::new()
         .route("/api", get(root))
         .route("/api/auth/signup", post(signup))
+        // ref: https://github.com/tokio-rs/axum/blob/3b92cd7593a900d3c79c2aeb411f90be052a9a5c/examples/sqlx-postgres/src/main.rs#L55
+        // ref: https://docs.rs/axum/0.8.4/axum/struct.Router.html#method.with_state
+        .with_state(pool)
         // set up logging middleware
         // ref: https://docs.rs/axum/0.8.4/axum/struct.Router.html#example-3
         .layer(TraceLayer::new_for_http());
@@ -82,9 +91,40 @@ fn verify_password(password: &str, password_hash: &str) -> bool {
 
 // signup handler with json input
 // ref: https://docs.rs/axum/0.8.4/axum/extract/index.html
-async fn signup(Json(input): Json<Signup>) -> Json<serde_json::Value> {
-    // TODO: impl
-    Json(serde_json::to_value(input).unwrap())
+async fn signup(
+    State(pool): State<SqlitePool>,
+    Json(input): Json<Signup>,
+) -> (axum::http::StatusCode, axum::Json<serde_json::Value>) {
+    let existing_user = sqlx::query!("SELECT id FROM user WHERE email = ?", input.email)
+        .fetch_optional(&pool)
+        .await
+        .unwrap();
+    if existing_user.is_some() {
+        // TODO: vulnerable to enumeration attack
+        // ref: https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html#authentication-responses
+        // ref: https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/03-Identity_Management_Testing/04-Testing_for_Account_Enumeration_and_Guessable_User_Account
+        return (
+            StatusCode::CONFLICT,
+            Json(json!({ "error": "User already exists" })),
+        );
+    }
+
+    let hashed_password = hash_password(&input.password);
+
+    sqlx::query!(
+        "INSERT INTO user (email, name, password) VALUES (?, ?, ?)",
+        input.email,
+        input.name,
+        hashed_password
+    )
+    .execute(&pool)
+    .await
+    .unwrap();
+
+    (
+        StatusCode::CREATED,
+        Json(json!({ "message": "User created successfully" })),
+    )
 }
 
 #[cfg(test)]
