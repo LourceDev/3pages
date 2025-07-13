@@ -9,12 +9,14 @@ use axum::{
     routing::{get, post},
 };
 use dotenvy::dotenv;
+use jsonwebtoken::{EncodingKey, Header, encode};
 use log::info;
 use rand_core::OsRng;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::SqlitePool;
 use std::env;
+use time::OffsetDateTime;
 use tower_http::trace::TraceLayer;
 
 #[tokio::main]
@@ -34,6 +36,7 @@ async fn main() {
     let app = Router::new()
         .route("/api", get(root))
         .route("/api/auth/signup", post(signup))
+        .route("/api/auth/login", post(login))
         // ref: https://github.com/tokio-rs/axum/blob/3b92cd7593a900d3c79c2aeb411f90be052a9a5c/examples/sqlx-postgres/src/main.rs#L55
         // ref: https://docs.rs/axum/0.8.4/axum/struct.Router.html#method.with_state
         .with_state(pool)
@@ -59,7 +62,7 @@ async fn root() -> Json<serde_json::Value> {
 }
 
 // TODO: validation
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize)]
 struct Signup {
     email: String,
     name: String,
@@ -124,6 +127,85 @@ async fn signup(
     (
         StatusCode::CREATED,
         Json(json!({ "message": "User created successfully" })),
+    )
+}
+
+#[derive(Deserialize)]
+struct Login {
+    email: String,
+    password: String,
+}
+
+#[derive(Serialize)]
+struct DbUser {
+    id: i64,
+    email: String,
+    name: String,
+    #[serde(skip_serializing)]
+    password: String,
+    #[serde(with = "time::serde::rfc3339")]
+    created_at: OffsetDateTime,
+}
+
+fn create_jwt(user_id: i64) -> String {
+    #[derive(Debug, Serialize, Deserialize)]
+    struct Claims {
+        // match js server behavior
+        #[serde(rename = "userId")]
+        user_id: i64,
+        iat: usize, // Optional. Issued at (as UTC timestamp)
+        exp: usize, // Required (validate_exp defaults to true in validation). Expiration time (as UTC timestamp)
+    }
+
+    let claims = Claims {
+        user_id,
+        iat: OffsetDateTime::now_utc().unix_timestamp() as usize,
+        exp: (OffsetDateTime::now_utc() + time::Duration::days(7)).unix_timestamp() as usize,
+    };
+
+    encode(
+        &Header::default(),
+        &claims,
+        &EncodingKey::from_secret(env::var("JWT_SECRET").expect("JWT_SECRET not set").as_ref()),
+    )
+    .unwrap()
+}
+
+async fn login(
+    State(pool): State<SqlitePool>,
+    Json(input): Json<Login>,
+) -> (axum::http::StatusCode, axum::Json<serde_json::Value>) {
+    let user = sqlx::query_as!(
+        DbUser,
+        "select id, email, name, password, created_at from user where email = ?",
+        input.email
+    )
+    .fetch_optional(&pool)
+    .await
+    .unwrap();
+
+    let unauthorized_response = || {
+        (
+            StatusCode::UNAUTHORIZED,
+            Json(json!({ "error": "Incorrect email or password" })),
+        )
+    };
+
+    if user.is_none() {
+        return unauthorized_response();
+    }
+
+    let user = user.unwrap();
+
+    if !verify_password(&input.password, &user.password) {
+        return unauthorized_response();
+    }
+
+    let token = create_jwt(user.id);
+
+    (
+        StatusCode::OK,
+        Json(json!({ "token": token, "user": user })),
     )
 }
 

@@ -12,7 +12,7 @@ rand_core = { version = "0.6.4", features = ["getrandom"] }
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
 tokio = { version = "1.46.1", features = ["macros", "rt-multi-thread"] }
-tower-http = { version = "0.6.6", features = ["trace"] }
+tower-http = { version = "0.6.6", features = ["cors", "trace"] }
 tracing-subscriber = "0.3.19"
 sqlx = { version = "0.8", features = [
   "runtime-tokio",
@@ -22,6 +22,9 @@ sqlx = { version = "0.8", features = [
   "derive",
   "time",
 ] }
+jsonwebtoken = "9"
+time = { version = "0.3.41", features = ["serde"] }
+tower = "0.5.2"
 
 [profile.dev.package.sqlx-macros]
 opt-level = 3
