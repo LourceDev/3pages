@@ -13,13 +13,19 @@ Use it to
 - [3pages](#3pages)
   - [Table of contents](#table-of-contents)
   - [Server setup](#server-setup)
-    - [Install dependencies](#install-dependencies)
-    - [.env.development](#envdevelopment)
-    - [Set up database](#set-up-database)
-    - [Start dev server](#start-dev-server)
+    - [Rust server](#rust-server)
+      - [Install dependencies](#install-dependencies)
+      - [.env](#env)
+      - [Set up database](#set-up-database)
+      - [Start the server](#start-the-server)
+    - [Node.js server](#nodejs-server)
+      - [Install dependencies](#install-dependencies-1)
+      - [.env.development](#envdevelopment)
+      - [Set up database](#set-up-database-1)
+      - [Start dev server](#start-dev-server)
   - [Client setup](#client-setup)
-    - [Install dependencies](#install-dependencies-1)
-    - [.env](#env)
+    - [Install dependencies](#install-dependencies-2)
+    - [.env](#env-1)
     - [Start client](#start-client)
   - [Ideas](#ideas)
   - [Contributing](#contributing)
@@ -28,17 +34,53 @@ Use it to
 
 ## Server setup
 
-### Install dependencies
+### Rust server
+
+#### Install dependencies
+
+This installs Prisma which is used to manage the database schema.
 
 ```sh
 npm install
 ```
 
-### .env.development
+#### .env
+
+```sh
+DATABASE_URL="sqlite:data.db"
+DATABASE_URL_PRISMA="file:data.db"
+# generate JWT_SECRET: $ node -e "console.log(require('crypto').randomBytes(32).toString('hex'));"
+JWT_SECRET=
+PORT=3030
+RUST_LOG=debug
+```
+
+#### Set up database
+
+```sh
+npm run migrate # create sqlite database and apply migrations
+npx prisma studio # optionally open prisma studio to view db
+```
+
+#### Start the server
+
+```sh
+cargo run
+```
+
+### Node.js server
+
+#### Install dependencies
+
+```sh
+npm install
+```
+
+#### .env.development
 
 <!-- https://www.digitalocean.com/community/tutorials/nodejs-jwt-expressjs#step-1-generating-a-token -->
 
-```
+```sh
 DATABASE_URL="file:./dev.db"
 # generate JWT_SECRET: $ node -e "console.log(require('crypto').randomBytes(32).toString('hex'));"
 JWT_SECRET=
@@ -46,7 +88,7 @@ NODE_ENV=development
 PORT=3030
 ```
 
-### Set up database
+#### Set up database
 
 ```sh
 npm run dev:prisma migrate deploy # apply migrations
@@ -55,7 +97,7 @@ npm run dev:prisma generate # generate types
 npm run dev:prisma studio # optionally open prisma studio to view db
 ```
 
-### Start dev server
+#### Start dev server
 
 ```sh
 npm run dev
