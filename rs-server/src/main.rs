@@ -1,4 +1,4 @@
-mod controllers;
+mod controller;
 mod utils;
 
 use axum::{
@@ -26,9 +26,9 @@ async fn main() {
         .expect("Failed to connect to the database");
 
     let app = Router::new()
-        .route("/api", get(controllers::root))
-        .route("/api/auth/signup", post(controllers::signup))
-        .route("/api/auth/login", post(controllers::login))
+        .route("/api", get(controller::root))
+        .route("/api/auth/signup", post(controller::signup))
+        .route("/api/auth/login", post(controller::login))
         // ref: https://github.com/tokio-rs/axum/blob/3b92cd7593a900d3c79c2aeb411f90be052a9a5c/examples/sqlx-postgres/src/main.rs#L55
         // ref: https://docs.rs/axum/0.8.4/axum/struct.Router.html#method.with_state
         .with_state(pool)
