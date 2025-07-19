@@ -10,7 +10,7 @@ use dotenvy::dotenv;
 use log::info;
 use sqlx::SqlitePool;
 use std::env;
-use tower_http::trace::TraceLayer;
+use tower_http::{cors::CorsLayer, trace::TraceLayer};
 
 #[tokio::main]
 async fn main() {
@@ -44,11 +44,17 @@ async fn main() {
             middleware::authenticate,
         ));
 
+    let cors = CorsLayer::new()
+        .allow_methods(tower_http::cors::Any)
+        .allow_headers(tower_http::cors::Any)
+        .allow_origin(tower_http::cors::Any);
+
     let app = public_routes
         .merge(protected_routes)
         // ref: https://github.com/tokio-rs/axum/blob/3b92cd7593a900d3c79c2aeb411f90be052a9a5c/examples/sqlx-postgres/src/main.rs#L55
         // ref: https://docs.rs/axum/0.8.4/axum/struct.Router.html#method.with_state
         .with_state(pool)
+        .layer(cors)
         // set up logging middleware
         // ref: https://docs.rs/axum/0.8.4/axum/struct.Router.html#example-3
         .layer(TraceLayer::new_for_http());

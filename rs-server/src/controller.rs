@@ -8,7 +8,10 @@ use serde_json::{Value, json};
 use sqlx::SqlitePool;
 use time::{OffsetDateTime, format_description};
 
-use crate::utils::{create_jwt, hash_password, status_text, verify_password};
+use crate::utils::{
+    create_jwt, deserialize_date_from_string, get_date_from_string, hash_password, status_text,
+    verify_password,
+};
 
 // TODO: request body validation
 // TODO: error handling
@@ -127,6 +130,7 @@ pub async fn login(
 
 #[derive(Deserialize)]
 pub struct PutEntry {
+    #[serde(deserialize_with = "deserialize_date_from_string")]
     date: OffsetDateTime,
     text: Value,
 }
@@ -214,6 +218,7 @@ pub async fn get_entry_by_date(
     Extension(user): Extension<DbUser>,
     Path(date): Path<String>,
 ) -> Result<Json<DbEntry>, (StatusCode, &'static str)> {
+    let date = get_date_from_string(&date).map_err(|_| status_text(StatusCode::BAD_REQUEST))?;
     let entry = sqlx::query_as!(
         DbEntry,
         // ref: https://docs.rs/sqlx/0.8.6/sqlx/macro.query_as.html#column-type-override-infer-from-struct-field
@@ -236,6 +241,7 @@ pub async fn delete_entry_by_date(
     Extension(user): Extension<DbUser>,
     Path(date): Path<String>,
 ) -> Result<StatusCode, (StatusCode, &'static str)> {
+    let date = get_date_from_string(&date).map_err(|_| status_text(StatusCode::BAD_REQUEST))?;
     sqlx::query!(
         "DELETE FROM entry WHERE user_id = ? AND date = ?",
         user.id,

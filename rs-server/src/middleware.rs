@@ -23,7 +23,11 @@ pub async fn authenticate(
         .headers()
         .get(header::AUTHORIZATION)
         .and_then(|auth_header| auth_header.to_str().ok())
-        .and_then(|auth_header| auth_header.strip_prefix("Bearer "))
+        .and_then(|auth_header| {
+            auth_header
+                .strip_prefix("Bearer ")
+                .or(auth_header.strip_prefix("bearer "))
+        })
         .ok_or(status_text(StatusCode::UNAUTHORIZED))?;
 
     let jwt_data = decode_jwt(token).ok_or(status_text(StatusCode::UNAUTHORIZED))?;

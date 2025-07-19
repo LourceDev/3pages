@@ -5,9 +5,9 @@ use argon2::{
 use axum::http::StatusCode;
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, TokenData, Validation, decode, encode};
 use rand_core::OsRng;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use std::env;
-use time::OffsetDateTime;
+use time::{OffsetDateTime, macros::format_description};
 
 pub fn hash_password(password: &str) -> String {
     let params = argon2::ParamsBuilder::new()
@@ -73,6 +73,22 @@ pub fn status_text(code: StatusCode) -> (StatusCode, &'static str) {
         code,
         code.canonical_reason().unwrap_or("Unknown status code"),
     )
+}
+
+// ref: https://serde.rs/field-attrs.html#deserialize_with
+pub fn deserialize_date_from_string<'de, D>(deserializer: D) -> Result<OffsetDateTime, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    get_date_from_string(&s).map_err(serde::de::Error::custom)
+}
+
+pub fn get_date_from_string(date: &str) -> Result<OffsetDateTime, String> {
+    let format = format_description!("[year]-[month]-[day]");
+    time::Date::parse(date, &format)
+        .map(|d| d.with_time(time::Time::MIDNIGHT).assume_utc())
+        .map_err(|_| format!("Failed to parse date: {}", date))
 }
 
 #[cfg(test)]

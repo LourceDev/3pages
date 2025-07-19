@@ -52,7 +52,7 @@ DATABASE_URL_PRISMA="file:data.db"
 # generate JWT_SECRET: $ node -e "console.log(require('crypto').randomBytes(32).toString('hex'));"
 JWT_SECRET=
 PORT=3030
-RUST_LOG=debug
+RUST_LOG=trace
 ```
 
 #### Set up database
