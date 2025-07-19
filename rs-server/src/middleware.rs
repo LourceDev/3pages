@@ -10,15 +10,15 @@ use axum::{
 use sqlx::SqlitePool;
 
 use crate::{
-    controller::DbUser,
-    utils::{decode_jwt, status_text},
+    db::{self},
+    utils::decode_jwt,
 };
 
 pub async fn authenticate(
     State(pool): State<SqlitePool>,
     mut req: Request,
     next: Next,
-) -> Result<Response, (StatusCode, &'static str)> {
+) -> Result<Response, StatusCode> {
     let token = req
         .headers()
         .get(header::AUTHORIZATION)
@@ -28,20 +28,15 @@ pub async fn authenticate(
                 .strip_prefix("Bearer ")
                 .or(auth_header.strip_prefix("bearer "))
         })
-        .ok_or(status_text(StatusCode::UNAUTHORIZED))?;
+        .ok_or(StatusCode::UNAUTHORIZED)?;
 
-    let jwt_data = decode_jwt(token).ok_or(status_text(StatusCode::UNAUTHORIZED))?;
+    let jwt_data = decode_jwt(token).ok_or(StatusCode::UNAUTHORIZED)?;
     let user_id = jwt_data.claims.user_id;
 
-    let user = sqlx::query_as!(
-        DbUser,
-        "select id, email, name, password, created_at from user where id = ?",
-        user_id
-    )
-    .fetch_optional(&pool)
-    .await
-    .map_err(|_| status_text(StatusCode::INTERNAL_SERVER_ERROR))?
-    .ok_or(status_text(StatusCode::UNAUTHORIZED))?;
+    let user = db::get_user_by_id(&pool, user_id)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+        .ok_or(StatusCode::UNAUTHORIZED)?;
 
     req.extensions_mut().insert(user);
     Ok(next.run(req).await)

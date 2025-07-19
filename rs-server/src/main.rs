@@ -1,7 +1,7 @@
 mod controller;
+mod db;
 mod middleware;
 mod utils;
-
 use axum::{
     Router,
     routing::{delete, get, post, put},
@@ -60,7 +60,7 @@ async fn main() {
         .layer(TraceLayer::new_for_http());
 
     let host = "0.0.0.0";
-    let port = env::var("PORT").unwrap();
+    let port = env::var("PORT").expect("PORT not set");
     // start the server
     // ref: https://docs.rs/axum/0.8.4/axum/index.html#example
     let listener = tokio::net::TcpListener::bind(format!("{}:{}", host, port))

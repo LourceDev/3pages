@@ -1,17 +1,19 @@
+use crate::{
+    db::{self, DbEntry, DbUser},
+    utils::{
+        create_jwt, deserialize_date_from_string, get_date_from_string, hash_password,
+        offset_date_time_to_yyyy_mm_dd, verify_password,
+    },
+};
 use axum::{
     Extension,
     extract::{Json, Path, State},
     http::StatusCode,
 };
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::{Value, json};
 use sqlx::SqlitePool;
-use time::{OffsetDateTime, format_description};
-
-use crate::utils::{
-    create_jwt, deserialize_date_from_string, get_date_from_string, hash_password, status_text,
-    verify_password,
-};
+use time::OffsetDateTime;
 
 // TODO: request body validation
 // TODO: error handling
@@ -20,7 +22,7 @@ use crate::utils::{
 
 // root handler
 // ref: https://docs.rs/axum/0.8.4/axum/handler/index.html
-pub async fn root() -> Json<serde_json::Value> {
+pub async fn root() -> Json<Value> {
     Json(json!({ "status": "works" }))
 }
 
@@ -38,37 +40,22 @@ pub struct Signup {
 pub async fn signup(
     State(pool): State<SqlitePool>,
     Json(input): Json<Signup>,
-) -> (axum::http::StatusCode, axum::Json<serde_json::Value>) {
-    let existing_user = sqlx::query!("SELECT id FROM user WHERE email = ?", input.email)
-        .fetch_optional(&pool)
+) -> Result<StatusCode, StatusCode> {
+    db::get_user_id_by_email(&pool, &input.email)
         .await
-        .unwrap();
-    if existing_user.is_some() {
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
         // TODO: vulnerable to enumeration attack
         // ref: https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html#authentication-responses
         // ref: https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/03-Identity_Management_Testing/04-Testing_for_Account_Enumeration_and_Guessable_User_Account
-        return (
-            StatusCode::CONFLICT,
-            Json(json!({ "error": "User already exists" })),
-        );
-    }
+        .ok_or(StatusCode::CONFLICT)?;
 
-    let hashed_password = hash_password(&input.password);
+    let hashed_password = hash_password(&input.password).map_err(|_| StatusCode::BAD_REQUEST)?;
 
-    sqlx::query!(
-        "INSERT INTO user (email, name, password) VALUES (?, ?, ?)",
-        input.email,
-        input.name,
-        hashed_password
-    )
-    .execute(&pool)
-    .await
-    .unwrap();
+    db::create_user(&pool, &input.email, &input.name, &hashed_password)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    (
-        StatusCode::CREATED,
-        Json(json!({ "message": "User created successfully" })),
-    )
+    Ok(StatusCode::CREATED)
 }
 
 /* --------------------------------- login ---------------------------------- */
@@ -79,51 +66,22 @@ pub struct Login {
     password: String,
 }
 
-#[derive(Serialize, Clone)]
-pub struct DbUser {
-    pub id: i64,
-    pub email: String,
-    pub name: String,
-    #[serde(skip_serializing)]
-    pub password: String,
-    #[serde(with = "time::serde::rfc3339")]
-    pub created_at: OffsetDateTime,
-}
-
 pub async fn login(
     State(pool): State<SqlitePool>,
     Json(input): Json<Login>,
-) -> (axum::http::StatusCode, axum::Json<serde_json::Value>) {
-    let user = sqlx::query_as!(
-        DbUser,
-        "select id, email, name, password, created_at from user where email = ?",
-        input.email
-    )
-    .fetch_optional(&pool)
-    .await
-    .unwrap();
-
-    let unauthorized_response = (
-        StatusCode::UNAUTHORIZED,
-        Json(json!({ "error": "Incorrect email or password" })),
-    );
-
-    if user.is_none() {
-        return unauthorized_response;
-    }
-
-    let user = user.unwrap();
+) -> Result<Json<Value>, StatusCode> {
+    let user = db::get_user_by_email(&pool, &input.email)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+        .ok_or(StatusCode::UNAUTHORIZED)?;
 
     if !verify_password(&input.password, &user.password) {
-        return unauthorized_response;
+        return Err(StatusCode::UNAUTHORIZED);
     }
 
-    let token = create_jwt(user.id);
+    let token = create_jwt(user.id).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    (
-        StatusCode::OK,
-        Json(json!({ "token": token, "user": user })),
-    )
+    Ok(Json(json!({ "token": token, "user": user })))
 }
 
 /* ------------------------------- put entry -------------------------------- */
@@ -139,97 +97,52 @@ pub async fn put_entry(
     State(pool): State<SqlitePool>,
     Extension(user): Extension<DbUser>,
     Json(input): Json<PutEntry>,
-) -> Result<StatusCode, (StatusCode, &'static str)> {
-    let existing_entry = sqlx::query!(
-        "SELECT user_id FROM entry WHERE user_id = ? AND date = ?",
-        user.id,
-        input.date
-    )
-    .fetch_all(&pool)
-    .await
-    .map_err(|_| status_text(StatusCode::INTERNAL_SERVER_ERROR))?;
+) -> Result<StatusCode, StatusCode> {
+    let existing_entry = db::check_entry_exists_by_user_and_date(&pool, user.id, input.date)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    if existing_entry.is_empty() {
-        sqlx::query!(
-            "INSERT INTO entry (user_id, date, text) VALUES (?, ?, ?)",
-            user.id,
-            input.date,
-            input.text
-        )
-        .execute(&pool)
-        .await
-        .map_err(|_| status_text(StatusCode::INTERNAL_SERVER_ERROR))?;
+    if existing_entry.is_none() {
+        db::create_entry(&pool, user.id, input.date, input.text)
+            .await
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     } else {
-        sqlx::query!(
-            "UPDATE entry SET text = ? WHERE user_id = ? AND date = ?",
-            input.text,
-            user.id,
-            input.date
-        )
-        .execute(&pool)
-        .await
-        .map_err(|_| status_text(StatusCode::INTERNAL_SERVER_ERROR))?;
+        db::update_entry_text_by_user_and_date(&pool, input.text, user.id, input.date)
+            .await
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     }
     Ok(StatusCode::OK)
 }
 
 /* -------------------------- get all entry dates --------------------------- */
 
-struct DbEntryDate {
-    date: OffsetDateTime,
-}
-
 pub async fn get_all_entry_dates(
     State(pool): State<SqlitePool>,
     Extension(user): Extension<DbUser>,
-) -> Result<Json<Vec<String>>, (StatusCode, &'static str)> {
-    let dates = sqlx::query_as!(
-        DbEntryDate,
-        "select date from entry where user_id = ?",
-        user.id
-    )
-    .fetch_all(&pool)
-    .await
-    .map_err(|_| status_text(StatusCode::INTERNAL_SERVER_ERROR))?;
-
-    let format =
-        format_description::parse("[year]-[month]-[day]").expect("Format string should be valid");
-
-    let dates: Vec<String> = dates
-        .into_iter()
-        .map(|entry| entry.date.format(&format).expect("Failed to format date"))
+) -> Result<Json<Vec<String>>, StatusCode> {
+    let dates: Result<Vec<String>, _> = db::list_entry_dates_by_user(&pool, user.id)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+        .iter()
+        .map(|date| offset_date_time_to_yyyy_mm_dd(*date))
         .collect();
+    let dates = dates.map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
     Ok(Json(dates))
 }
 
 /* --------------------------- get entry by date ---------------------------- */
 
-#[derive(Serialize)]
-pub struct DbEntry {
-    user_id: i64,
-    date: OffsetDateTime,
-    text: Value,
-    created_at: OffsetDateTime,
-}
-
 pub async fn get_entry_by_date(
     State(pool): State<SqlitePool>,
     Extension(user): Extension<DbUser>,
     Path(date): Path<String>,
-) -> Result<Json<DbEntry>, (StatusCode, &'static str)> {
-    let date = get_date_from_string(&date).map_err(|_| status_text(StatusCode::BAD_REQUEST))?;
-    let entry = sqlx::query_as!(
-        DbEntry,
-        // ref: https://docs.rs/sqlx/0.8.6/sqlx/macro.query_as.html#column-type-override-infer-from-struct-field
-        r#"select user_id, date, text as "text: _", created_at from entry where user_id = ? and date = ?"#,
-        user.id,
-        date
-    )
-    .fetch_optional(&pool)
-    .await
-    .map_err(|_| status_text(StatusCode::INTERNAL_SERVER_ERROR))?
-    .ok_or(status_text(StatusCode::NOT_FOUND))?;
+) -> Result<Json<DbEntry>, StatusCode> {
+    let date = get_date_from_string(&date).map_err(|_| StatusCode::BAD_REQUEST)?;
+    let entry = db::get_entry_by_user_and_date(&pool, user.id, date)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+        .ok_or(StatusCode::NOT_FOUND)?;
 
     Ok(Json(entry))
 }
@@ -240,16 +153,11 @@ pub async fn delete_entry_by_date(
     State(pool): State<SqlitePool>,
     Extension(user): Extension<DbUser>,
     Path(date): Path<String>,
-) -> Result<StatusCode, (StatusCode, &'static str)> {
-    let date = get_date_from_string(&date).map_err(|_| status_text(StatusCode::BAD_REQUEST))?;
-    sqlx::query!(
-        "DELETE FROM entry WHERE user_id = ? AND date = ?",
-        user.id,
-        date
-    )
-    .execute(&pool)
-    .await
-    .map_err(|_| status_text(StatusCode::INTERNAL_SERVER_ERROR))?;
+) -> Result<StatusCode, StatusCode> {
+    let date = get_date_from_string(&date).map_err(|_| StatusCode::BAD_REQUEST)?;
+    db::delete_entry_by_user_and_date(&pool, user.id, date)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
     Ok(StatusCode::NO_CONTENT)
 }

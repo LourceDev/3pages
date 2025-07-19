@@ -2,34 +2,33 @@ use argon2::{
     Argon2, PasswordVerifier,
     password_hash::{PasswordHasher, SaltString},
 };
-use axum::http::StatusCode;
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, TokenData, Validation, decode, encode};
 use rand_core::OsRng;
 use serde::{Deserialize, Deserializer, Serialize};
 use std::env;
 use time::{OffsetDateTime, macros::format_description};
 
-pub fn hash_password(password: &str) -> String {
+pub fn hash_password(password: &str) -> Result<String, argon2::password_hash::Error> {
     let params = argon2::ParamsBuilder::new()
         .m_cost(47104)
         .t_cost(2)
         .p_cost(1)
         .build()
-        .unwrap();
+        .expect("Expected valid argon2 parameters");
     let argon2 = Argon2::new(argon2::Algorithm::Argon2id, argon2::Version::V0x13, params);
     let salt = SaltString::generate(&mut OsRng);
 
     argon2
         .hash_password(password.as_bytes(), &salt)
-        .unwrap()
-        .to_string()
+        .map(|ph| ph.to_string())
 }
 
 pub fn verify_password(password: &str, password_hash: &str) -> bool {
-    let parsed_hash = argon2::PasswordHash::new(password_hash).unwrap();
-    Argon2::default()
-        .verify_password(password.as_bytes(), &parsed_hash)
-        .is_ok()
+    argon2::PasswordHash::new(password_hash).is_ok_and(|parsed| {
+        Argon2::default()
+            .verify_password(password.as_bytes(), &parsed)
+            .is_ok()
+    })
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -41,7 +40,7 @@ pub struct Claims {
     exp: usize, // Required (validate_exp defaults to true in validation). Expiration time (as UTC timestamp)
 }
 
-pub fn create_jwt(user_id: i64) -> String {
+pub fn create_jwt(user_id: i64) -> Result<String, jsonwebtoken::errors::Error> {
     let claims = Claims {
         user_id,
         iat: OffsetDateTime::now_utc().unix_timestamp() as usize,
@@ -53,26 +52,15 @@ pub fn create_jwt(user_id: i64) -> String {
         &claims,
         &EncodingKey::from_secret(env::var("JWT_SECRET").expect("JWT_SECRET not set").as_ref()),
     )
-    .unwrap()
 }
 
 pub fn decode_jwt(token: &str) -> Option<TokenData<Claims>> {
-    let token = decode::<Claims>(
+    decode::<Claims>(
         token,
         &DecodingKey::from_secret(env::var("JWT_SECRET").expect("JWT_SECRET not set").as_ref()),
         &Validation::default(),
-    );
-    if token.is_err() {
-        return None;
-    }
-    Some(token.unwrap())
-}
-
-pub fn status_text(code: StatusCode) -> (StatusCode, &'static str) {
-    (
-        code,
-        code.canonical_reason().unwrap_or("Unknown status code"),
     )
+    .ok()
 }
 
 // ref: https://serde.rs/field-attrs.html#deserialize_with
@@ -89,6 +77,10 @@ pub fn get_date_from_string(date: &str) -> Result<OffsetDateTime, String> {
     time::Date::parse(date, &format)
         .map(|d| d.with_time(time::Time::MIDNIGHT).assume_utc())
         .map_err(|_| format!("Failed to parse date: {}", date))
+}
+
+pub fn offset_date_time_to_yyyy_mm_dd(date: OffsetDateTime) -> Result<String, time::error::Format> {
+    date.format(format_description!("[year]-[month]-[day]"))
 }
 
 #[cfg(test)]
@@ -108,7 +100,7 @@ mod tests {
     /// to ensure that we can verify newly created password hashes
     fn verify_new_hash() {
         let password = "jack@example.com";
-        let new_hash = hash_password(password);
+        let new_hash = hash_password(password).expect("Failed to hash password");
         assert!(verify_password(password, &new_hash));
     }
 }
