@@ -2,7 +2,8 @@ use argon2::{
     Argon2, PasswordVerifier,
     password_hash::{PasswordHasher, SaltString},
 };
-use jsonwebtoken::{EncodingKey, Header, encode};
+use axum::http::StatusCode;
+use jsonwebtoken::{DecodingKey, EncodingKey, Header, TokenData, Validation, decode, encode};
 use rand_core::OsRng;
 use serde::{Deserialize, Serialize};
 use std::env;
@@ -31,16 +32,16 @@ pub fn verify_password(password: &str, password_hash: &str) -> bool {
         .is_ok()
 }
 
-pub fn create_jwt(user_id: i64) -> String {
-    #[derive(Debug, Serialize, Deserialize)]
-    struct Claims {
-        // match js server behavior
-        #[serde(rename = "userId")]
-        user_id: i64,
-        iat: usize, // Optional. Issued at (as UTC timestamp)
-        exp: usize, // Required (validate_exp defaults to true in validation). Expiration time (as UTC timestamp)
-    }
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Claims {
+    // match js server behavior
+    #[serde(rename = "userId")]
+    pub user_id: i64,
+    iat: usize, // Optional. Issued at (as UTC timestamp)
+    exp: usize, // Required (validate_exp defaults to true in validation). Expiration time (as UTC timestamp)
+}
 
+pub fn create_jwt(user_id: i64) -> String {
     let claims = Claims {
         user_id,
         iat: OffsetDateTime::now_utc().unix_timestamp() as usize,
@@ -53,6 +54,25 @@ pub fn create_jwt(user_id: i64) -> String {
         &EncodingKey::from_secret(env::var("JWT_SECRET").expect("JWT_SECRET not set").as_ref()),
     )
     .unwrap()
+}
+
+pub fn decode_jwt(token: &str) -> Option<TokenData<Claims>> {
+    let token = decode::<Claims>(
+        token,
+        &DecodingKey::from_secret(env::var("JWT_SECRET").expect("JWT_SECRET not set").as_ref()),
+        &Validation::default(),
+    );
+    if token.is_err() {
+        return None;
+    }
+    Some(token.unwrap())
+}
+
+pub fn status_text(code: StatusCode) -> (StatusCode, &'static str) {
+    (
+        code,
+        code.canonical_reason().unwrap_or("Unknown status code"),
+    )
 }
 
 #[cfg(test)]

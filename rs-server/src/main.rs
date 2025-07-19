@@ -1,9 +1,10 @@
 mod controller;
+mod middleware;
 mod utils;
 
 use axum::{
     Router,
-    routing::{get, post},
+    routing::{delete, get, post, put},
 };
 use dotenvy::dotenv;
 use log::info;
@@ -25,10 +26,26 @@ async fn main() {
         .await
         .expect("Failed to connect to the database");
 
-    let app = Router::new()
+    let public_routes = Router::new()
         .route("/api", get(controller::root))
         .route("/api/auth/signup", post(controller::signup))
-        .route("/api/auth/login", post(controller::login))
+        .route("/api/auth/login", post(controller::login));
+
+    let protected_routes = Router::new()
+        .route("/api/entry", put(controller::put_entry))
+        .route("/api/entry/dates", get(controller::get_all_entry_dates))
+        .route("/api/entry/{date}", get(controller::get_entry_by_date))
+        .route(
+            "/api/entry/{date}",
+            delete(controller::delete_entry_by_date),
+        )
+        .layer(axum::middleware::from_fn_with_state(
+            pool.clone(),
+            middleware::authenticate,
+        ));
+
+    let app = public_routes
+        .merge(protected_routes)
         // ref: https://github.com/tokio-rs/axum/blob/3b92cd7593a900d3c79c2aeb411f90be052a9a5c/examples/sqlx-postgres/src/main.rs#L55
         // ref: https://docs.rs/axum/0.8.4/axum/struct.Router.html#method.with_state
         .with_state(pool)
