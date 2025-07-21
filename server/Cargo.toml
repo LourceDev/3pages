@@ -1,5 +1,5 @@
 [package]
-name = "rs-server"
+name = "server"
 version = "0.1.0"
 edition = "2024"
 
@@ -25,6 +25,7 @@ sqlx = { version = "0.8", features = [
 jsonwebtoken = "9"
 time = { version = "0.3.41", features = ["serde"] }
 tower = "0.5.2"
+validator = { version = "0.20", features = ["derive"] }
 
 [profile.dev.package.sqlx-macros]
 opt-level = 3

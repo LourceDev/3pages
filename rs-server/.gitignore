@@ -1,4 +1,0 @@
-/target
-.env
-*.db
-node_modules/
