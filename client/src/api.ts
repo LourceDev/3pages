@@ -1,6 +1,5 @@
 import { env } from "@/env";
 import { HttpStatusCode } from "@/utils";
-import { schema } from "@/validation-schema";
 import type { JSONContent } from "@tiptap/react";
 import { z } from "zod";
 
@@ -20,12 +19,28 @@ function error<T>(err: T): Error<T> {
   return { success: false, error: err };
 }
 
+const requiredString = z.string().trim().min(1, "required");
+
+const password = z
+  .string()
+  .trim()
+  .min(8, "Password must be at least 8 characters long")
+  .max(40, "Password must be at most 40 characters long");
+
+const email = z.string().email("Invalid email");
+
 type SignupOutput = {
   message: string;
 };
 
-async function signup(body: z.infer<typeof schema.signupInput>): Promise<Result<SignupOutput, string>> {
-  const parsed = schema.signupInput.safeParse(body);
+const signupInput = z.strictObject({
+  email,
+  name: requiredString,
+  password,
+});
+
+async function signup(body: z.infer<typeof signupInput>): Promise<Result<SignupOutput, string>> {
+  const parsed = signupInput.safeParse(body);
   if (!parsed.success) {
     console.error(parsed.error);
     return error("parse error");
@@ -63,8 +78,13 @@ export type LoginOutput = {
   };
 };
 
-async function login(body: z.infer<typeof schema.loginInput>): Promise<Result<LoginOutput, string>> {
-  const parsed = schema.loginInput.safeParse(body);
+const loginInput = z.strictObject({
+  email,
+  password,
+});
+
+async function login(body: z.infer<typeof loginInput>): Promise<Result<LoginOutput, string>> {
+  const parsed = loginInput.safeParse(body);
   if (!parsed.success) {
     console.error(parsed.error);
     return error("parse error");
@@ -92,8 +112,33 @@ async function login(body: z.infer<typeof schema.loginInput>): Promise<Result<Lo
   }
 }
 
-async function putEntry(token: string, body: z.infer<typeof schema.entryInput>): Promise<Result<null, string>> {
-  const parsed = schema.entryInput.safeParse(body);
+const jsonContentSchema: z.ZodType<JSONContent> = z.lazy(
+  () =>
+    z
+      .object({
+        type: z.string().optional(),
+        attrs: z.record(z.any()).optional(),
+        content: z.array(jsonContentSchema).optional(),
+        marks: z
+          .array(
+            z.object({
+              type: z.string(),
+              attrs: z.record(z.any()).optional(),
+            })
+          )
+          .optional(),
+        text: z.string().optional(),
+      })
+      .passthrough() // allow other arbitrary keys
+);
+
+const entryInput = z.strictObject({
+  date: requiredString.date(),
+  text: jsonContentSchema,
+});
+
+async function putEntry(token: string, body: z.infer<typeof entryInput>): Promise<Result<null, string>> {
+  const parsed = entryInput.safeParse(body);
   if (!parsed.success) {
     console.error(parsed.error);
     return error("parse error");
@@ -127,11 +172,13 @@ export type GetEntryOutput = {
   userId: number;
 };
 
+const getEntryInput = requiredString.date();
+
 async function getEntry(
   token: string,
-  body: z.infer<typeof schema.getEntryInput>,
+  body: z.infer<typeof getEntryInput>
 ): Promise<Result<GetEntryOutput | null, string>> {
-  const parsed = schema.getEntryInput.safeParse(body);
+  const parsed = getEntryInput.safeParse(body);
   if (!parsed.success) {
     console.error(parsed.error);
     return error("parse error");
@@ -163,11 +210,10 @@ async function getEntry(
   }
 }
 
-async function deleteEntry(
-  token: string,
-  body: z.infer<typeof schema.deleteEntryInput>,
-): Promise<Result<null, string>> {
-  const parsed = schema.deleteEntryInput.safeParse(body);
+const deleteEntryInput = requiredString.date();
+
+async function deleteEntry(token: string, body: z.infer<typeof deleteEntryInput>): Promise<Result<null, string>> {
+  const parsed = deleteEntryInput.safeParse(body);
   if (!parsed.success) {
     console.error(parsed.error);
     return error("parse error");
