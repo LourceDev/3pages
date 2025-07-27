@@ -47,13 +47,13 @@ DATABASE_URL_PRISMA="file:data.db"
 JWT_SECRET=
 PORT=3030
 RUST_LOG=trace
+RUST_BACKTRACE=full
 ```
 
 ### Set up database
 
 ```sh
 npm run migrate # create sqlite database and apply migrations
-npx prisma studio # optionally open prisma studio to view db
 ```
 
 ### Start the server

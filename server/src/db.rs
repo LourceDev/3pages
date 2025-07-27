@@ -1,5 +1,6 @@
 // naming convention: [Action]_[Entity]_[By_Clause]
 
+use crate::datetime::AppDateTime;
 use serde::Serialize;
 use serde_json::Value;
 use sqlx::{Error, SqlitePool, query_file, query_file_as};
@@ -31,8 +32,7 @@ pub struct DbUser {
     pub name: String,
     #[serde(skip_serializing)]
     pub password: String,
-    #[serde(with = "time::serde::rfc3339")]
-    pub created_at: OffsetDateTime,
+    pub created_at: AppDateTime,
 }
 
 pub async fn get_user_by_email(pool: &SqlitePool, email: &str) -> Result<Option<DbUser>, Error> {
@@ -88,24 +88,20 @@ pub async fn update_entry_text_by_user_and_date(
 pub async fn list_entry_dates_by_user(
     pool: &SqlitePool,
     user_id: i64,
-) -> Result<Vec<OffsetDateTime>, Error> {
+) -> Result<Vec<AppDateTime>, Error> {
     query_file!("src/sql/list_entry_dates_by_user.sql", user_id)
         .fetch_all(pool)
         .await
-        .map(|records| {
-            records
-                .iter()
-                .map(|record| record.date)
-                .collect::<Vec<OffsetDateTime>>()
-        })
+        .map(|records| records.iter().map(|record| record.date.into()).collect())
 }
 
 #[derive(Serialize)]
 pub struct DbEntry {
     user_id: i64,
-    date: OffsetDateTime,
+    #[serde(serialize_with = "crate::datetime::AppDateTime::serialize_to_yyyy_mm_dd_string")]
+    date: AppDateTime,
     text: Value,
-    created_at: OffsetDateTime,
+    created_at: AppDateTime,
 }
 
 pub async fn get_entry_by_user_and_date(

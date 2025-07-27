@@ -1,4 +1,5 @@
 mod controller;
+mod datetime;
 mod db;
 mod env;
 mod middleware;
@@ -31,7 +32,7 @@ async fn main() {
         .route("/api/auth/login", post(controller::login));
 
     let protected_routes = Router::new()
-        .route("/api/entry", put(controller::put_entry))
+        .route("/api/entry/{date}", put(controller::put_entry))
         .route("/api/entry/dates", get(controller::get_all_entry_dates))
         .route("/api/entry/{date}", get(controller::get_entry_by_date))
         .route(
@@ -43,6 +44,7 @@ async fn main() {
             middleware::authenticate,
         ));
 
+    // TODO: change this in production
     let cors = CorsLayer::new()
         .allow_methods(tower_http::cors::Any)
         .allow_headers(tower_http::cors::Any)

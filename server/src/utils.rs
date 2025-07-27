@@ -1,13 +1,12 @@
+use crate::env::Env;
 use argon2::{
     Argon2, PasswordVerifier,
     password_hash::{PasswordHasher, SaltString},
 };
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, TokenData, Validation, decode, encode};
 use rand_core::OsRng;
-use serde::{Deserialize, Deserializer, Serialize};
-use time::{OffsetDateTime, macros::format_description};
-
-use crate::env::Env;
+use serde::{Deserialize, Serialize};
+use time::OffsetDateTime;
 
 pub fn hash_password(password: &str) -> Result<String, argon2::password_hash::Error> {
     // ref: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#argon2id
@@ -63,26 +62,6 @@ pub fn decode_jwt(token: &str) -> Option<TokenData<Claims>> {
         &Validation::default(),
     )
     .ok()
-}
-
-// ref: https://serde.rs/field-attrs.html#deserialize_with
-pub fn deserialize_date_from_string<'de, D>(deserializer: D) -> Result<OffsetDateTime, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let s = String::deserialize(deserializer)?;
-    get_date_from_string(&s).map_err(serde::de::Error::custom)
-}
-
-pub fn get_date_from_string(date: &str) -> Result<OffsetDateTime, String> {
-    let format = format_description!("[year]-[month]-[day]");
-    time::Date::parse(date, &format)
-        .map(|d| d.with_time(time::Time::MIDNIGHT).assume_utc())
-        .map_err(|_| format!("Failed to parse date: {}", date))
-}
-
-pub fn offset_date_time_to_yyyy_mm_dd(date: OffsetDateTime) -> Result<String, time::error::Format> {
-    date.format(format_description!("[year]-[month]-[day]"))
 }
 
 pub mod trimmed_string {

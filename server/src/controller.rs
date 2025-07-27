@@ -1,9 +1,7 @@
 use crate::{
+    datetime::AppDateTime,
     db::{self, DbEntry, DbUser},
-    utils::{
-        create_jwt, deserialize_date_from_string, get_date_from_string, hash_password,
-        offset_date_time_to_yyyy_mm_dd, verify_password,
-    },
+    utils,
 };
 use axum::{
     Extension,
@@ -13,7 +11,6 @@ use axum::{
 use serde::Deserialize;
 use serde_json::{Value, json};
 use sqlx::SqlitePool;
-use time::OffsetDateTime;
 
 // TODO: request body validation
 // TODO: error handling
@@ -54,7 +51,8 @@ pub async fn signup(
         return Err(StatusCode::CONFLICT);
     }
 
-    let hashed_password = hash_password(&input.password).map_err(|_| StatusCode::BAD_REQUEST)?;
+    let hashed_password =
+        utils::hash_password(&input.password).map_err(|_| StatusCode::BAD_REQUEST)?;
 
     db::create_user(&pool, &input.email, &input.name, &hashed_password)
         .await
@@ -81,39 +79,39 @@ pub async fn login(
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
         .ok_or(StatusCode::UNAUTHORIZED)?;
 
-    if !verify_password(&input.password, &user.password) {
+    if !utils::verify_password(&input.password, &user.password) {
         return Err(StatusCode::UNAUTHORIZED);
     }
 
-    let token = create_jwt(user.id).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let token = utils::create_jwt(user.id).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
     Ok(Json(json!({ "token": token, "user": user })))
 }
 
 /* ------------------------------- put entry -------------------------------- */
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct PutEntryInput {
-    #[serde(deserialize_with = "deserialize_date_from_string")]
-    date: OffsetDateTime,
     text: Value,
 }
 
 pub async fn put_entry(
     State(pool): State<SqlitePool>,
     Extension(user): Extension<DbUser>,
+    Path(date): Path<String>,
     Json(input): Json<PutEntryInput>,
 ) -> Result<StatusCode, StatusCode> {
-    let existing_entry = db::check_entry_exists_by_user_and_date(&pool, user.id, input.date)
+    let date = AppDateTime::from_iso_string(&date).map_err(|_| StatusCode::BAD_REQUEST)?;
+    let existing_entry = db::check_entry_exists_by_user_and_date(&pool, user.id, date.into())
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
     if existing_entry.is_none() {
-        db::create_entry(&pool, user.id, input.date, input.text)
+        db::create_entry(&pool, user.id, date.into(), input.text)
             .await
             .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     } else {
-        db::update_entry_text_by_user_and_date(&pool, input.text, user.id, input.date)
+        db::update_entry_text_by_user_and_date(&pool, input.text, user.id, date.into())
             .await
             .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     }
@@ -130,7 +128,7 @@ pub async fn get_all_entry_dates(
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
         .iter()
-        .map(|date| offset_date_time_to_yyyy_mm_dd(*date))
+        .map(|date| date.to_yyyy_mm_dd_string())
         .collect();
     let dates = dates.map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
@@ -144,8 +142,8 @@ pub async fn get_entry_by_date(
     Extension(user): Extension<DbUser>,
     Path(date): Path<String>,
 ) -> Result<Json<DbEntry>, StatusCode> {
-    let date = get_date_from_string(&date).map_err(|_| StatusCode::BAD_REQUEST)?;
-    let entry = db::get_entry_by_user_and_date(&pool, user.id, date)
+    let date = AppDateTime::from_iso_string(&date).map_err(|_| StatusCode::BAD_REQUEST)?;
+    let entry = db::get_entry_by_user_and_date(&pool, user.id, date.into())
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
         .ok_or(StatusCode::NOT_FOUND)?;
@@ -160,8 +158,8 @@ pub async fn delete_entry_by_date(
     Extension(user): Extension<DbUser>,
     Path(date): Path<String>,
 ) -> Result<StatusCode, StatusCode> {
-    let date = get_date_from_string(&date).map_err(|_| StatusCode::BAD_REQUEST)?;
-    db::delete_entry_by_user_and_date(&pool, user.id, date)
+    let date = AppDateTime::from_iso_string(&date).map_err(|_| StatusCode::BAD_REQUEST)?;
+    db::delete_entry_by_user_and_date(&pool, user.id, date.into())
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
