@@ -15,10 +15,13 @@ export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+    const key = e.target.name as keyof typeof form;
+    let value = e.target.value;
+    const toTrim: Partial<Record<keyof typeof form, boolean>> = { email: true, name: true };
+    if (key in toTrim) {
+      value = value.trim();
+    }
+    setForm({ ...form, [key]: value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
