@@ -29,8 +29,10 @@ pub async fn root() -> Json<Value> {
 /* --------------------------------- signup --------------------------------- */
 
 #[derive(Deserialize)]
-pub struct Signup {
+pub struct SignupInput {
+    #[serde(with = "crate::utils::trimmed_string")]
     email: String,
+    #[serde(with = "crate::utils::trimmed_string")]
     name: String,
     password: String,
 }
@@ -39,7 +41,7 @@ pub struct Signup {
 // ref: https://docs.rs/axum/0.8.4/axum/extract/index.html
 pub async fn signup(
     State(pool): State<SqlitePool>,
-    Json(input): Json<Signup>,
+    Json(input): Json<SignupInput>,
 ) -> Result<StatusCode, StatusCode> {
     db::get_user_id_by_email(&pool, &input.email)
         .await
@@ -61,14 +63,15 @@ pub async fn signup(
 /* --------------------------------- login ---------------------------------- */
 
 #[derive(Deserialize)]
-pub struct Login {
+pub struct LoginInput {
+    #[serde(with = "crate::utils::trimmed_string")]
     email: String,
     password: String,
 }
 
 pub async fn login(
     State(pool): State<SqlitePool>,
-    Json(input): Json<Login>,
+    Json(input): Json<LoginInput>,
 ) -> Result<Json<Value>, StatusCode> {
     let user = db::get_user_by_email(&pool, &input.email)
         .await
@@ -87,7 +90,7 @@ pub async fn login(
 /* ------------------------------- put entry -------------------------------- */
 
 #[derive(Deserialize)]
-pub struct PutEntry {
+pub struct PutEntryInput {
     #[serde(deserialize_with = "deserialize_date_from_string")]
     date: OffsetDateTime,
     text: Value,
@@ -96,7 +99,7 @@ pub struct PutEntry {
 pub async fn put_entry(
     State(pool): State<SqlitePool>,
     Extension(user): Extension<DbUser>,
-    Json(input): Json<PutEntry>,
+    Json(input): Json<PutEntryInput>,
 ) -> Result<StatusCode, StatusCode> {
     let existing_entry = db::check_entry_exists_by_user_and_date(&pool, user.id, input.date)
         .await

@@ -84,6 +84,18 @@ pub fn offset_date_time_to_yyyy_mm_dd(date: OffsetDateTime) -> Result<String, ti
     date.format(format_description!("[year]-[month]-[day]"))
 }
 
+pub mod trimmed_string {
+    use serde::{self, Deserialize, Deserializer};
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<String, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        Ok(s.trim().to_string())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
