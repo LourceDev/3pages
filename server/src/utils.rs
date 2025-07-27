@@ -10,9 +10,10 @@ use time::{OffsetDateTime, macros::format_description};
 use crate::env::Env;
 
 pub fn hash_password(password: &str) -> Result<String, argon2::password_hash::Error> {
+    // ref: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#argon2id
     let params = argon2::ParamsBuilder::new()
         .m_cost(47104)
-        .t_cost(2)
+        .t_cost(1)
         .p_cost(1)
         .build()
         .expect("Expected valid argon2 parameters");
