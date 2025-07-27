@@ -144,10 +144,12 @@ async function putEntry(token: string, body: z.infer<typeof entryInput>): Promis
     return error("parse error");
   }
 
+  const { date, text } = body;
+
   try {
-    const resp = await fetch(`${baseUrl}/api/entry`, {
+    const resp = await fetch(`${baseUrl}/api/entry/${date}`, {
       method: "PUT",
-      body: JSON.stringify(body),
+      body: JSON.stringify({ text }),
       headers: {
         "Content-Type": "application/json",
         Authorization: `bearer ${token}`,

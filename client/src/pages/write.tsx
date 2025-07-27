@@ -1,4 +1,5 @@
 import { API } from "@/api";
+import dayjs from "@/dayjs";
 import { RootState } from "@/store";
 import { notifyFailure, notifySuccess } from "@/utils";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
@@ -31,7 +32,7 @@ import Paragraph from "@tiptap/extension-paragraph";
 import Placeholder from "@tiptap/extension-placeholder";
 import Text from "@tiptap/extension-text";
 import { EditorContent, Editor as TiptapEditor, useEditor } from "@tiptap/react";
-import dayjs, { Dayjs } from "dayjs";
+import type { Dayjs } from "dayjs";
 import { RefObject, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 
@@ -77,7 +78,7 @@ const extensions = [
   }),
 ];
 
-const today = dayjs();
+const today = dayjs().startOf("day");
 
 /* ------------------------------- Functions -------------------------------- */
 
@@ -240,10 +241,10 @@ export default function Write() {
       editorRef.current.style.cursor = "text";
 
       if (!output.success) return notifyFailure(output.error);
-      if (output.data === null) editor.commands.setContent("");
-      else editor.commands.setContent(output.data.text);
-
-      editor.commands.focus();
+      if (output.data === null) {
+        editor.commands.setContent("");
+        editor.commands.focus();
+      } else editor.commands.setContent(output.data.text);
     };
 
     getExistingEntry();
