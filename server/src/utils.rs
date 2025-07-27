@@ -5,8 +5,9 @@ use argon2::{
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, TokenData, Validation, decode, encode};
 use rand_core::OsRng;
 use serde::{Deserialize, Deserializer, Serialize};
-use std::env;
 use time::{OffsetDateTime, macros::format_description};
+
+use crate::env::Env;
 
 pub fn hash_password(password: &str) -> Result<String, argon2::password_hash::Error> {
     let params = argon2::ParamsBuilder::new()
@@ -50,14 +51,14 @@ pub fn create_jwt(user_id: i64) -> Result<String, jsonwebtoken::errors::Error> {
     encode(
         &Header::default(),
         &claims,
-        &EncodingKey::from_secret(env::var("JWT_SECRET").expect("JWT_SECRET not set").as_ref()),
+        &EncodingKey::from_secret(Env::get().jwt_secret.as_ref()),
     )
 }
 
 pub fn decode_jwt(token: &str) -> Option<TokenData<Claims>> {
     decode::<Claims>(
         token,
-        &DecodingKey::from_secret(env::var("JWT_SECRET").expect("JWT_SECRET not set").as_ref()),
+        &DecodingKey::from_secret(Env::get().jwt_secret.as_ref()),
         &Validation::default(),
     )
     .ok()

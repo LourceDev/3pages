@@ -1,28 +1,27 @@
 mod controller;
 mod db;
+mod env;
 mod middleware;
 mod utils;
+use crate::env::Env;
 use axum::{
     Router,
     routing::{delete, get, post, put},
 };
-use dotenvy::dotenv;
 use log::info;
 use sqlx::SqlitePool;
-use std::env;
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
 
 #[tokio::main]
 async fn main() {
-    // load environment variables from .env file
-    // ref: https://github.com/allan2/dotenvy/blob/v0.15.7/README.md
-    dotenv().expect(".env file not found");
+    // initialize the environment variables
+    Env::initialize();
 
     // initialize the logger
     // ref: https://github.com/tokio-rs/tracing/blob/tracing-subscriber-0.3.19/README.md
     tracing_subscriber::fmt::init();
 
-    let pool = SqlitePool::connect(&env::var("DATABASE_URL").expect("DATABASE_URL not set"))
+    let pool = SqlitePool::connect(&Env::get().database_url)
         .await
         .expect("Failed to connect to the database");
 
@@ -60,7 +59,7 @@ async fn main() {
         .layer(TraceLayer::new_for_http());
 
     let host = "0.0.0.0";
-    let port = env::var("PORT").expect("PORT not set");
+    let port = Env::get().port;
     // start the server
     // ref: https://docs.rs/axum/0.8.4/axum/index.html#example
     let listener = tokio::net::TcpListener::bind(format!("{}:{}", host, port))
