@@ -43,13 +43,16 @@ pub async fn signup(
     State(pool): State<SqlitePool>,
     Json(input): Json<SignupInput>,
 ) -> Result<StatusCode, StatusCode> {
-    db::get_user_id_by_email(&pool, &input.email)
+    let user_id = db::get_user_id_by_email(&pool, &input.email)
         .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    if user_id.is_some() {
         // TODO: vulnerable to enumeration attack
         // ref: https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html#authentication-responses
         // ref: https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/03-Identity_Management_Testing/04-Testing_for_Account_Enumeration_and_Guessable_User_Account
-        .ok_or(StatusCode::CONFLICT)?;
+        return Err(StatusCode::CONFLICT);
+    }
 
     let hashed_password = hash_password(&input.password).map_err(|_| StatusCode::BAD_REQUEST)?;
 
