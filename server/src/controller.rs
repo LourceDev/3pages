@@ -1,6 +1,7 @@
 use crate::{
     datetime::AppDateTime,
     db::{self, DbEntry, DbUser},
+    extractor::ValidatedJson,
     utils,
 };
 use axum::{
@@ -11,9 +12,7 @@ use axum::{
 use serde::Deserialize;
 use serde_json::{Value, json};
 use sqlx::SqlitePool;
-
-// TODO: request body validation
-// TODO: error handling
+use validator::Validate;
 
 /* ---------------------------------- root ---------------------------------- */
 
@@ -25,12 +24,18 @@ pub async fn root() -> Json<Value> {
 
 /* --------------------------------- signup --------------------------------- */
 
-#[derive(Deserialize)]
+#[derive(Validate, Deserialize)]
 pub struct SignupInput {
+    #[validate(email(message = "Invalid email"))]
     #[serde(with = "crate::utils::trimmed_string")]
     email: String,
     #[serde(with = "crate::utils::trimmed_string")]
     name: String,
+    #[validate(length(
+        min = 8,
+        max = 40,
+        message = "Password must be between 8 and 40 characters long"
+    ))]
     password: String,
 }
 
@@ -38,7 +43,7 @@ pub struct SignupInput {
 // ref: https://docs.rs/axum/0.8.4/axum/extract/index.html
 pub async fn signup(
     State(pool): State<SqlitePool>,
-    Json(input): Json<SignupInput>,
+    ValidatedJson(input): ValidatedJson<SignupInput>,
 ) -> Result<StatusCode, StatusCode> {
     let user_id = db::get_user_id_by_email(&pool, &input.email)
         .await
@@ -63,10 +68,16 @@ pub async fn signup(
 
 /* --------------------------------- login ---------------------------------- */
 
-#[derive(Deserialize)]
+#[derive(Validate, Deserialize)]
 pub struct LoginInput {
+    #[validate(email(message = "Invalid email"))]
     #[serde(with = "crate::utils::trimmed_string")]
     email: String,
+    #[validate(length(
+        min = 8,
+        max = 40,
+        message = "Password must be between 8 and 40 characters long"
+    ))]
     password: String,
 }
 
@@ -92,6 +103,7 @@ pub async fn login(
 
 #[derive(Deserialize, Debug)]
 pub struct PutEntryInput {
+    // TODO: validate
     text: Value,
 }
 

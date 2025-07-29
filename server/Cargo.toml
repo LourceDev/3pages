@@ -26,6 +26,7 @@ jsonwebtoken = "9"
 time = { version = "0.3.41", features = ["parsing"] }
 tower = "0.5.2"
 validator = { version = "0.20", features = ["derive"] }
+thiserror = "2.0.12"
 
 [profile.dev.package.sqlx-macros]
 opt-level = 3

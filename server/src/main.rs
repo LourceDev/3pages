@@ -2,6 +2,7 @@ mod controller;
 mod datetime;
 mod db;
 mod env;
+mod extractor;
 mod middleware;
 mod utils;
 use crate::env::Env;
