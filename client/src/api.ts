@@ -29,9 +29,6 @@ const password = z
 
 const email = z.string().email("Invalid email");
 
-type SignupOutput = {
-  message: string;
-};
 
 const signupInput = z.strictObject({
   email,
@@ -39,7 +36,7 @@ const signupInput = z.strictObject({
   password,
 });
 
-async function signup(body: z.infer<typeof signupInput>): Promise<Result<SignupOutput, string>> {
+async function signup(body: z.infer<typeof signupInput>): Promise<Result<null, string>> {
   const parsed = signupInput.safeParse(body);
   if (!parsed.success) {
     console.error(parsed.error);
@@ -60,8 +57,7 @@ async function signup(body: z.infer<typeof signupInput>): Promise<Result<SignupO
       return error(resp.statusText);
     }
 
-    const output = (await resp.json()) as SignupOutput;
-    return success(output);
+    return success(null);
   } catch (err) {
     console.error(err);
     return error("other error");
