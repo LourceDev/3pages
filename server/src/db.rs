@@ -32,6 +32,7 @@ pub struct DbUser {
     pub name: String,
     #[serde(skip_serializing)]
     pub password: String,
+    #[serde(rename = "createdAt")]
     pub created_at: AppDateTime,
 }
 
@@ -97,10 +98,12 @@ pub async fn list_entry_dates_by_user(
 
 #[derive(Serialize)]
 pub struct DbEntry {
+    #[serde(rename = "userId")]
     user_id: i64,
     #[serde(serialize_with = "crate::datetime::AppDateTime::serialize_to_yyyy_mm_dd_string")]
     date: AppDateTime,
     text: Value,
+    #[serde(rename = "createdAt")]
     created_at: AppDateTime,
 }
 
