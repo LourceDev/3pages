@@ -19,7 +19,7 @@ impl Env {
     }
 
     pub fn initialize() {
-        let env = Env::try_from_env().unwrap();
+        let env = Env::try_from_env().expect("Failed to initialize environment variables");
         ENV.set(env)
             .expect("Environment variables already initialized");
     }

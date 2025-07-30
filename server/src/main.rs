@@ -1,3 +1,7 @@
+#![deny(clippy::unwrap_used, clippy::panic)]
+// allow in tests
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::panic))]
+
 mod controller;
 mod datetime;
 mod db;
@@ -65,9 +69,25 @@ async fn main() {
     let port = Env::get().port;
     // start the server
     // ref: https://docs.rs/axum/0.8.4/axum/index.html#example
+    #[allow(clippy::panic)]
     let listener = tokio::net::TcpListener::bind(format!("{}:{}", host, port))
         .await
-        .unwrap();
-    info!("Server running on http://{}:{}", host, port);
-    axum::serve(listener, app).await.unwrap();
+        .unwrap_or_else(|err| {
+            panic!("Failed to bind to {}:{}. Error: {}", host, port, err);
+        });
+
+    if let Ok(addr) = listener.local_addr() {
+        info!("Server running on {:?}", addr);
+    } else {
+        info!("Server started on {}:{}", host, port);
+        info!("Failed to get local address");
+    }
+
+    #[allow(clippy::panic)]
+    axum::serve(listener, app).await.unwrap_or_else(|err| {
+        panic!(
+            "Failed to start server on {}:{}. Error: {}",
+            host, port, err
+        );
+    });
 }
