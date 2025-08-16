@@ -1,11 +1,14 @@
 import { API } from "@/api";
 import dayjs from "@/dayjs";
 import { RootState } from "@/store";
-import { notifyFailure, notifySuccess } from "@/utils";
+import { notifyFailure } from "@/utils";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import CloudDoneOutlinedIcon from "@mui/icons-material/CloudDoneOutlined";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
+import SyncOutlinedIcon from "@mui/icons-material/SyncOutlined";
 import Badge from "@mui/material/Badge";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -37,17 +40,9 @@ import type { Dayjs } from "dayjs";
 import { createLowlight, all as lowlightAll } from "lowlight";
 import { RefObject, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
+import { useDebouncedCallback } from "use-debounce";
 
 /* ------------------------------- Variables -------------------------------- */
-
-const messages = [
-  "🎉 You did it!",
-  "🚀 Crushed it!",
-  "✨ All done!",
-  "🏆 Success!",
-  "🔥 Nice work!",
-  "🎶 That’s a wrap!",
-];
 
 const editorProps = {
   attributes: {
@@ -83,6 +78,9 @@ const extensions = [
 ];
 
 const today = dayjs().startOf("day");
+
+// TODO: set this to 750 later
+const wordLimit = 15;
 
 /* ------------------------------- Functions -------------------------------- */
 
@@ -171,32 +169,87 @@ function DateChangeToolbar(props: DateChangeToolbarProps) {
 }
 
 interface EditorProps {
-  editor: TiptapEditor | null;
+  editor: TiptapEditor;
   editorRef: RefObject<HTMLDivElement | null>;
   wordCount: number;
+  saveStatus: "saving" | "saved";
+  save: (editor: TiptapEditor) => Promise<void>;
 }
 
 function Editor(props: EditorProps) {
-  const { editor, editorRef, wordCount } = props;
+  const { editor, editorRef, wordCount, saveStatus: saveState, save } = props;
   return (
     <Stack spacing={1}>
       {
         // TODO: add a toolbar
       }
       <EditorContent editor={editor} ref={editorRef} />
-      <Typography variant="caption" align="right">
-        {wordCount} words
-      </Typography>
+      <Stack direction={"row"} justifyContent={"end"} gap={1} alignItems={"center"}>
+        <Typography variant="caption" sx={wordCount >= wordLimit ? { fontWeight: "bold" } : { fontWeight: "normal" }}>
+          {wordCount} words
+        </Typography>
+
+        {saveState === "saving" ? (
+          <SyncOutlinedIcon fontSize="small" />
+        ) : saveState === "saved" ? (
+          <CloudDoneOutlinedIcon fontSize="small" />
+        ) : null}
+
+        <Button
+          size="small"
+          sx={{ padding: 0.5, margin: 0, width: "fit-content", minWidth: 0 }}
+          onClick={() => save(editor)}
+        >
+          <SaveOutlinedIcon color="inherit" fontSize="small" />
+        </Button>
+      </Stack>
     </Stack>
   );
 }
 
 export default function Write() {
   const token = useSelector((state: RootState) => state.app.token);
-  // TODO: set this to 750 later
-  const wordLimit = 15;
-  // used to ensure that the success message is shown only once
-  const [successMessageShown, setSuccessMessageShown] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"saving" | "saved">("saved");
+  const [activeDate, setActiveDate] = useState(today);
+  const [highlightedDays, setHighlightedDays] = useState<Set<string> | undefined>();
+
+  const save = async (editor: TiptapEditor) => {
+    if (!token || !hasUnsavedChanges) return;
+
+    setSaveStatus("saving");
+
+    // if editor is empty, delete the entry
+    if (editor.isEmpty) {
+      const output = await API.deleteEntry(token, activeDate.format("YYYY-MM-DD"));
+      if (!output.success) return notifyFailure(output.error);
+
+      setHighlightedDays((prev) => {
+        const newDays = new Set(prev);
+        newDays.delete(activeDate.format("YYYY-MM-DD"));
+        return newDays;
+      });
+    } else {
+      const entry = {
+        date: activeDate.format("YYYY-MM-DD"),
+        text: editor.getJSON(),
+      };
+      const output = await API.putEntry(token, entry);
+      if (!output.success) return notifyFailure(output.error);
+
+      setHighlightedDays((prev) => {
+        const newDays = new Set(prev);
+        newDays.add(activeDate.format("YYYY-MM-DD"));
+        return newDays;
+      });
+    }
+
+    setSaveStatus("saved");
+    setHasUnsavedChanges(false);
+  };
+
+  const debouncedSave = useDebouncedCallback(save, 2000);
+
   const editorRef = useRef<HTMLDivElement>(null);
   const editor = useEditor({
     extensions,
@@ -207,16 +260,22 @@ export default function Write() {
       // TODO: this is not efficient, improve it
       const count = countWords(props.editor.getText());
       setWordCount(count);
-
-      if (!successMessageShown && count > wordLimit) {
-        notifySuccess(messages[Math.floor(Math.random() * messages.length)]);
-        setSuccessMessageShown(true);
-      }
+      setHasUnsavedChanges(true);
+      debouncedSave(props.editor);
     },
   });
-  const [activeDate, setActiveDate] = useState(today);
-  const [highlightedDays, setHighlightedDays] = useState<Set<string> | undefined>();
   const [wordCount, setWordCount] = useState(() => countWords(editor?.getText() || ""));
+
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) event.preventDefault();
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      if (hasUnsavedChanges) debouncedSave.flush();
+    };
+  }, [hasUnsavedChanges, debouncedSave]);
 
   useEffect(() => {
     if (!token) return;
@@ -260,42 +319,8 @@ export default function Write() {
   return (
     <Stack spacing={4} component={Container}>
       <div>{/* added for spacing */}</div>
-
       <DateChangeToolbar activeDate={activeDate} setActiveDate={setActiveDate} highlightedDays={highlightedDays} />
-
-      <Editor editor={editor} editorRef={editorRef} wordCount={wordCount} />
-
-      <Button
-        variant="contained"
-        onClick={async () => {
-          // TODO: this impl is temporary, implement auto save and ctrl+s save in future
-          if (editor.isEmpty) {
-            const output = await API.deleteEntry(token, activeDate.format("YYYY-MM-DD"));
-            if (!output.success) return notifyFailure(output.error);
-
-            setHighlightedDays((prev) => {
-              const newDays = new Set(prev);
-              newDays.delete(activeDate.format("YYYY-MM-DD"));
-              return newDays;
-            });
-          } else {
-            const entry = {
-              date: activeDate.format("YYYY-MM-DD"),
-              text: editor.getJSON(),
-            };
-            const output = await API.putEntry(token, entry);
-            if (!output.success) return notifyFailure(output.error);
-
-            setHighlightedDays((prev) => {
-              const newDays = new Set(prev);
-              newDays.add(activeDate.format("YYYY-MM-DD"));
-              return newDays;
-            });
-          }
-        }}
-      >
-        Submit
-      </Button>
+      <Editor editor={editor} editorRef={editorRef} wordCount={wordCount} saveStatus={saveStatus} save={save} />
     </Stack>
   );
 }
