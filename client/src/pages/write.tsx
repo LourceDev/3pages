@@ -18,6 +18,8 @@ import { PickersDay, PickersDayProps } from "@mui/x-date-pickers/PickersDay";
 import { StaticDatePicker } from "@mui/x-date-pickers/StaticDatePicker";
 import Bold from "@tiptap/extension-bold";
 import BulletList from "@tiptap/extension-bullet-list";
+import Code from "@tiptap/extension-code";
+import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import Document from "@tiptap/extension-document";
 import Dropcursor from "@tiptap/extension-dropcursor";
 import Gapcursor from "@tiptap/extension-gapcursor";
@@ -33,6 +35,7 @@ import Placeholder from "@tiptap/extension-placeholder";
 import Text from "@tiptap/extension-text";
 import { EditorContent, Editor as TiptapEditor, useEditor } from "@tiptap/react";
 import type { Dayjs } from "dayjs";
+import { createLowlight, all as lowlightAll } from "lowlight";
 import { RefObject, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 
@@ -53,9 +56,13 @@ const editorProps = {
   },
 };
 
+const lowlight = createLowlight(lowlightAll);
+
 const extensions = [
   Bold,
   BulletList,
+  Code,
+  CodeBlockLowlight.configure({ lowlight, HTMLAttributes: { spellcheck: "false" } }),
   Document,
   Dropcursor,
   Gapcursor,
@@ -66,16 +73,9 @@ const extensions = [
   Italic,
   ListItem,
   OrderedList,
-  Paragraph.configure({
-    HTMLAttributes: {
-      class: "mt-0 mb-3",
-    },
-  }),
+  Paragraph.configure({ HTMLAttributes: { class: "mt-0 mb-3" } }),
+  Placeholder.configure({ placeholder: "Write something…", showOnlyWhenEditable: false }),
   Text,
-  Placeholder.configure({
-    placeholder: "Write something…",
-    showOnlyWhenEditable: false,
-  }),
 ];
 
 const today = dayjs().startOf("day");
