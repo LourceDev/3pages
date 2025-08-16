@@ -2,10 +2,45 @@
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
 
+/* https://github.com/ueberdosis/tiptap/blob/71db1f26e8a998c1675f183d99eee4291f45e50f/demos/setup/style.scss#L2 */
+
 .tiptap {
-  --white: #fff;
-  --black: #2e2b29;
-  --purple-light: rgba(88, 5, 255, 0.05);
+  --tiptap-black: #2e2b29;
+  --tiptap-gray-2: rgba(61, 37, 20, 0.08);
+  --tiptap-gray-3: rgba(61, 37, 20, 0.12);
+  --tiptap-purple-contrast: #5800cc;
+  --tiptap-purple-light: rgba(88, 5, 255, 0.05);
+  --tiptap-purple: #6a00f5;
+  --tiptap-white: #fff;
+}
+
+/* https://tiptap.dev/docs/editor/extensions/nodes/document */
+
+.tiptap :first-child {
+  margin-top: 0;
+}
+
+/* https://tiptap.dev/docs/editor/extensions/nodes/bullet-list */
+/* https://tiptap.dev/docs/editor/extensions/nodes/list-item */
+/* https://tiptap.dev/docs/editor/extensions/nodes/ordered-list */
+
+.tiptap ul,
+.tiptap ol {
+  padding: 0 1rem;
+  margin: 1.25rem 1rem 1.25rem 0.4rem;
+}
+
+.tiptap ul li p,
+.tiptap ol li p {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
+
+/* https://tiptap.dev/docs/editor/extensions/nodes/blockquote */
+.tiptap blockquote {
+  border-left: 3px solid var(--tiptap-gray-3);
+  margin: 1.5rem 0;
+  padding-left: 1rem;
 }
 
 /* https://tiptap.dev/docs/editor/extensions/functionality/placeholder */
@@ -17,26 +52,83 @@
   pointer-events: none;
 }
 
+/* https://tiptap.dev/docs/editor/extensions/marks/link */
+
+.tiptap a {
+  color: var(--tiptap-purple);
+  cursor: pointer;
+}
+
+.tiptap a:hover {
+  color: var(--tiptap-purple-contrast);
+}
+
 /* https://tiptap.dev/docs/editor/extensions/marks/code */
 
 .tiptap code {
-  background-color: var(--purple-light);
+  background-color: var(--tiptap-purple-light);
   border-radius: 0.4rem;
-  color: var(--black);
+  color: var(--tiptap-black);
   font-size: 0.85rem;
   padding: 0.25em 0.3em;
 }
 
-/* https://tiptap.dev/docs/editor/extensions/nodes/code-block-lowlight */
+/* https://tiptap.dev/docs/editor/extensions/nodes/horizontal-rule */
 
-.tiptap :first-child {
-  margin-top: 0;
+.tiptap hr {
+  border: none;
+  border-top: 1px solid var(--tiptap-gray-2);
+  cursor: pointer;
+  margin: 2rem 0;
 }
 
+.tiptap hr.ProseMirror-selectednode {
+  border-top: 1px solid var(--tiptap-purple);
+}
+
+/* https://tiptap.dev/docs/editor/extensions/nodes/heading */
+
+.tiptap h1,
+.tiptap h2,
+.tiptap h3,
+.tiptap h4,
+.tiptap h5,
+.tiptap h6 {
+  line-height: 1.1;
+  margin-top: 2.5rem;
+  text-wrap: pretty;
+}
+
+.tiptap h1,
+.tiptap h2 {
+  margin-top: 3.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.tiptap h1 {
+  font-size: 1.4rem;
+}
+
+.tiptap h2 {
+  font-size: 1.2rem;
+}
+
+.tiptap h3 {
+  font-size: 1.1rem;
+}
+
+.tiptap h4,
+.tiptap h5,
+.tiptap h6 {
+  font-size: 1rem;
+}
+
+/* https://tiptap.dev/docs/editor/extensions/nodes/code-block-lowlight */
+
 .tiptap pre {
-  background: var(--black);
+  background: var(--tiptap-black);
   border-radius: 0.5rem;
-  color: var(--white);
+  color: var(--tiptap-white);
   font-family: "JetBrainsMono", monospace;
   line-height: 1rem;
   margin: 1.5rem 0;

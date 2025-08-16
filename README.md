@@ -87,6 +87,7 @@ npm run dev
 Have other cool ideas? [Open an issue!](https://github.com/LourceDev/3pages/issues)
 
 - autosave and <kbd>ctrl</kbd>+<kbd>s</kbd> support
+- allow images in editor
 - make it self hostable, with configurable dbs, like sqlite, postgres, etc. (initial support only for postgres) (how to impl? use db abstraction layer ([ref](https://www.reddit.com/r/opensource/comments/z3p28p/comment/ixnig2t/)))
 - pwa support
 - default design should be minimal, use pastel and light colors, be cute and friendly

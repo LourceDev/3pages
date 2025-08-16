@@ -16,23 +16,22 @@ import Typography from "@mui/material/Typography";
 import { DayCalendarSkeleton } from "@mui/x-date-pickers/DayCalendarSkeleton";
 import { PickersDay, PickersDayProps } from "@mui/x-date-pickers/PickersDay";
 import { StaticDatePicker } from "@mui/x-date-pickers/StaticDatePicker";
+import Blockquote from "@tiptap/extension-blockquote";
 import Bold from "@tiptap/extension-bold";
-import BulletList from "@tiptap/extension-bullet-list";
 import Code from "@tiptap/extension-code";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import Document from "@tiptap/extension-document";
-import Dropcursor from "@tiptap/extension-dropcursor";
-import Gapcursor from "@tiptap/extension-gapcursor";
 import HardBreak from "@tiptap/extension-hard-break";
 import Heading from "@tiptap/extension-heading";
-import History from "@tiptap/extension-history";
 import HorizontalRule from "@tiptap/extension-horizontal-rule";
 import Italic from "@tiptap/extension-italic";
-import ListItem from "@tiptap/extension-list-item";
-import OrderedList from "@tiptap/extension-ordered-list";
+import TiptapLink from "@tiptap/extension-link";
+import { BulletList, ListItem, OrderedList } from "@tiptap/extension-list";
 import Paragraph from "@tiptap/extension-paragraph";
-import Placeholder from "@tiptap/extension-placeholder";
+import Strike from "@tiptap/extension-strike";
 import Text from "@tiptap/extension-text";
+import Underline from "@tiptap/extension-underline";
+import { Dropcursor, Gapcursor, Placeholder, UndoRedo } from "@tiptap/extensions";
 import { EditorContent, Editor as TiptapEditor, useEditor } from "@tiptap/react";
 import type { Dayjs } from "dayjs";
 import { createLowlight, all as lowlightAll } from "lowlight";
@@ -59,6 +58,7 @@ const editorProps = {
 const lowlight = createLowlight(lowlightAll);
 
 const extensions = [
+  Blockquote,
   Bold,
   BulletList,
   Code,
@@ -68,14 +68,18 @@ const extensions = [
   Gapcursor,
   HardBreak,
   Heading,
-  History,
   HorizontalRule,
   Italic,
   ListItem,
   OrderedList,
   Paragraph.configure({ HTMLAttributes: { class: "mt-0 mb-3" } }),
   Placeholder.configure({ placeholder: "Write something…", showOnlyWhenEditable: false }),
+  Strike,
   Text,
+  // TODO: support markdown link syntax: https://github.com/ueberdosis/tiptap/discussions/6140
+  TiptapLink.configure({ protocols: ["http", "https", "mailto", "tel", "ftp", "magnet"], autolink: false }),
+  Underline,
+  UndoRedo,
 ];
 
 const today = dayjs().startOf("day");
