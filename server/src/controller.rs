@@ -84,7 +84,7 @@ pub struct LoginInput {
 
 pub async fn login(
     State(pool): State<SqlitePool>,
-    Json(input): Json<LoginInput>,
+    ValidatedJson(input): ValidatedJson<LoginInput>,
 ) -> Result<Json<Value>, StatusCode> {
     let user = db::get_user_by_email(&pool, &input.email)
         .await
