@@ -8,6 +8,7 @@ mod db;
 mod env;
 mod extractor;
 mod middleware;
+mod tiptap;
 mod utils;
 use crate::env::Env;
 use axum::{

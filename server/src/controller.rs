@@ -2,6 +2,7 @@ use crate::{
     datetime::AppDateTime,
     db::{self, DbEntry, DbUser},
     extractor::ValidatedJson,
+    tiptap::TiptapJsonContent,
     utils,
 };
 use axum::{
@@ -103,8 +104,7 @@ pub async fn login(
 
 #[derive(Deserialize, Debug)]
 pub struct PutEntryInput {
-    // TODO: validate
-    text: Value,
+    text: TiptapJsonContent,
 }
 
 pub async fn put_entry(
@@ -118,12 +118,15 @@ pub async fn put_entry(
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
+    let word_count = input.text.count_words();
+    let text_json = serde_json::to_value(&input.text).map_err(|_| StatusCode::BAD_REQUEST)?;
+
     if existing_entry.is_none() {
-        db::create_entry(&pool, user.id, date.into(), input.text)
+        db::create_entry(&pool, user.id, date.into(), text_json, word_count)
             .await
             .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     } else {
-        db::update_entry_text_by_user_and_date(&pool, input.text, user.id, date.into())
+        db::update_entry_text_by_user_and_date(&pool, text_json, word_count, user.id, date.into())
             .await
             .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     }

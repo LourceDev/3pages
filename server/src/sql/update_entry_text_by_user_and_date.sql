@@ -1,6 +1,7 @@
 UPDATE `entry`
 SET
-  `text` = ?
+  `text` = ?,
+  `word_count` = ?
 WHERE
   `user_id` = ?
-  AND `date` = ?
+  AND `date` = ?;

@@ -62,8 +62,9 @@ pub async fn create_entry(
     user_id: i64,
     date: OffsetDateTime,
     text: Value,
+    word_count: i64
 ) -> Result<(), Error> {
-    query_file!("src/sql/create_entry.sql", user_id, date, text)
+    query_file!("src/sql/create_entry.sql", user_id, date, text, word_count)
         .execute(pool)
         .await?;
     Ok(())
@@ -72,12 +73,14 @@ pub async fn create_entry(
 pub async fn update_entry_text_by_user_and_date(
     pool: &SqlitePool,
     text: Value,
+    word_count: i64,
     user_id: i64,
     date: OffsetDateTime,
 ) -> Result<(), Error> {
     query_file!(
         "src/sql/update_entry_text_by_user_and_date.sql",
         text,
+        word_count,
         user_id,
         date
     )
@@ -103,6 +106,7 @@ pub struct DbEntry {
     #[serde(serialize_with = "crate::datetime::AppDateTime::serialize_to_yyyy_mm_dd_string")]
     date: AppDateTime,
     text: Value,
+    word_count: i64,
     #[serde(rename = "createdAt")]
     created_at: AppDateTime,
 }

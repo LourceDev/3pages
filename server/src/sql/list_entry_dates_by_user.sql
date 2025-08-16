@@ -3,4 +3,4 @@ SELECT
 FROM
   `entry`
 WHERE
-  `user_id` = ?
+  `user_id` = ?;

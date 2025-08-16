@@ -64,6 +64,25 @@ pub fn decode_jwt(token: &str) -> Option<TokenData<Claims>> {
     .ok()
 }
 
+pub fn count_words(text: &str) -> i64 {
+    let mut word_count = 0;
+    let mut in_word = false;
+
+    for char in text.chars() {
+        let is_whitespace = char == '\r' || char == '\t' || char == ' ';
+        if !is_whitespace && !in_word {
+            // Starting a new word
+            word_count += 1;
+            in_word = true;
+        } else if is_whitespace {
+            // Ending a word
+            in_word = false;
+        }
+    }
+
+    word_count
+}
+
 pub mod trimmed_string {
     use serde::{self, Deserialize, Deserializer};
 
