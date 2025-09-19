@@ -38,7 +38,9 @@ import { Dropcursor, Gapcursor, Placeholder, UndoRedo } from "@tiptap/extensions
 import { EditorContent, Editor as TiptapEditor, useEditor } from "@tiptap/react";
 import type { Dayjs } from "dayjs";
 import { createLowlight, all as lowlightAll } from "lowlight";
-import { RefObject, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import { RefObject, useEffect, useMemo, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { useDebouncedCallback } from "use-debounce";
 
@@ -77,8 +79,6 @@ const extensions = [
   UndoRedo,
 ];
 
-const today = dayjs().startOf("day");
-
 // TODO: set this to 750 later
 const wordLimit = 15;
 
@@ -98,31 +98,41 @@ type DatePickerDayProps = PickersDayProps<Dayjs> & {
 };
 
 function DatePickerDay(props: DatePickerDayProps) {
-  const { highlightedDays, day, outsideCurrentMonth, ...other } = props;
+  const { highlightedDays, ...other } = props;
   const isSelected = !props.outsideCurrentMonth && highlightedDays?.has(props.day.format("YYYY-MM-DD"));
 
   return (
     <Badge key={props.day.toString()} color="secondary" variant="dot" overlap="circular" invisible={!isSelected}>
-      <PickersDay {...other} outsideCurrentMonth={outsideCurrentMonth} day={day} />
+      {props.disabled ? (
+        <PickersDay {...other} />
+      ) : (
+        <Link href={`/writings/${props.day.format("YYYY-MM-DD")}`}>
+          <PickersDay {...other} />
+        </Link>
+      )}
     </Badge>
   );
 }
 
 interface DateChangeToolbarProps {
+  today: Dayjs;
   activeDate: Dayjs;
-  setActiveDate: (date: Dayjs) => void;
   highlightedDays?: Set<string>;
 }
 
 function DateChangeToolbar(props: DateChangeToolbarProps) {
-  const { activeDate, setActiveDate, highlightedDays } = props;
+  const { today, activeDate, highlightedDays } = props;
   const theme = useTheme();
   const [showCalendar, setShowCalendar] = useState(false);
 
   return (
     <Stack spacing={2}>
       <Box sx={{ display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-        <Button startIcon={<ChevronLeftIcon />} onClick={() => setActiveDate(activeDate.subtract(1, "day"))}>
+        <Button
+          startIcon={<ChevronLeftIcon />}
+          LinkComponent={Link}
+          href={`/writings/${activeDate.subtract(1, "day").format("YYYY-MM-DD")}`}
+        >
           <Box component={"span"} sx={{ [theme.breakpoints.down("sm")]: { display: "none" } }}>
             {activeDate.subtract(1, "day").format("D MMMM YYYY")}
           </Box>
@@ -140,7 +150,8 @@ function DateChangeToolbar(props: DateChangeToolbarProps) {
         </Button>
         <Button
           endIcon={<ChevronRightIcon />}
-          onClick={() => setActiveDate(activeDate.add(1, "day"))}
+          LinkComponent={Link}
+          href={`/writings/${activeDate.add(1, "day").format("YYYY-MM-DD")}`}
           sx={{ visibility: activeDate.isSame(today, "day") ? "hidden" : undefined }}
         >
           <Box component={"span"} sx={{ [theme.breakpoints.down("sm")]: { display: "none" } }}>
@@ -151,7 +162,6 @@ function DateChangeToolbar(props: DateChangeToolbarProps) {
       <Box sx={{ display: showCalendar ? "flex" : "none", justifyContent: "center" }}>
         <StaticDatePicker
           value={activeDate}
-          onChange={(value) => value && setActiveDate(value)}
           views={["year", "month", "day"]}
           renderLoading={() => <DayCalendarSkeleton />}
           slots={{ day: DatePickerDay }}
@@ -207,11 +217,19 @@ function Editor(props: EditorProps) {
   );
 }
 
+const today = dayjs().startOf("day");
+
 export default function Write() {
+  // -------------------
+  // State and functions
+  // -------------------
+
+  const router = useRouter();
   const token = useSelector((state: RootState) => state.app.token);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"saving" | "saved">("saved");
-  const [activeDate, setActiveDate] = useState(today);
+  // @ts-expect-error assume that date given is always valid
+  const activeDate = useMemo(() => dayjs(router.query.date).startOf("day"), [router.query.date]);
   const [highlightedDays, setHighlightedDays] = useState<Set<string> | undefined>();
 
   const save = async (editor: TiptapEditor) => {
@@ -266,6 +284,12 @@ export default function Write() {
   });
   const [wordCount, setWordCount] = useState(() => countWords(editor?.getText() || ""));
 
+  // TODO: redirect to today's page if date in url is in the future
+
+  // ----------------------
+  // Handle unsaved changes
+  // ----------------------
+
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) event.preventDefault();
@@ -277,6 +301,10 @@ export default function Write() {
     };
   }, [hasUnsavedChanges, debouncedSave]);
 
+  // -----------------------------------------
+  // Get all entry dates for DateChangeToolbar
+  // -----------------------------------------
+
   useEffect(() => {
     if (!token) return;
     const getAllEntryDates = async () => {
@@ -287,9 +315,20 @@ export default function Write() {
     getAllEntryDates();
   }, [token]);
 
+  // ------------------------
+  // Fetch activeDate's entry
+  // ------------------------
+
   useEffect(() => {
     if (!token) return;
     if (!editor) return;
+
+    // redirect to today if date is in the future
+    // @ts-expect-error assume valid date
+    if (dayjs(router.query.date).isAfter(today, "day")) {
+      router.replace("/writings/" + today.format("YYYY-MM-DD"));
+      return;
+    }
 
     const getExistingEntry = async () => {
       if (!editorRef.current) return;
@@ -311,7 +350,7 @@ export default function Write() {
     };
 
     getExistingEntry();
-  }, [token, editor, editorRef, activeDate]);
+  }, [token, editor, activeDate, router]);
 
   if (!editor) return null;
   if (!token) return <div>Unauthorized</div>;
@@ -319,7 +358,7 @@ export default function Write() {
   return (
     <Stack spacing={4} component={Container}>
       <div>{/* added for spacing */}</div>
-      <DateChangeToolbar activeDate={activeDate} setActiveDate={setActiveDate} highlightedDays={highlightedDays} />
+      <DateChangeToolbar today={today} activeDate={activeDate} highlightedDays={highlightedDays} />
       <Editor editor={editor} editorRef={editorRef} wordCount={wordCount} saveStatus={saveStatus} save={save} />
     </Stack>
   );
