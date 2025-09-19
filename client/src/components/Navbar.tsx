@@ -12,6 +12,7 @@ import Stack from "@mui/material/Stack";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import { Dispatch } from "@reduxjs/toolkit";
+import dayjs from "dayjs";
 import NextLink from "next/link";
 import { NextRouter, useRouter } from "next/router";
 import * as React from "react";
@@ -19,8 +20,13 @@ import { useDispatch, useSelector } from "react-redux";
 
 const WEBSITE_NAME = "3pages";
 
+const today = dayjs().startOf("day");
+
 const pages = {
-  private: [{ label: "Write", url: "/writings" }],
+  private: [
+    { label: "Write", url: `/writings/${today.format("YYYY-MM-DD")}` },
+    { label: "Writings", url: "/writings" },
+  ],
   public: [
     { label: "Signup", url: "/signup" },
     { label: "Login", url: "/login" },
