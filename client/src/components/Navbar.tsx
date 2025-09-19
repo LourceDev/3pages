@@ -20,7 +20,7 @@ import { useDispatch, useSelector } from "react-redux";
 const WEBSITE_NAME = "3pages";
 
 const pages = {
-  private: [{ label: "Write", url: "/write" }],
+  private: [{ label: "Write", url: "/writings" }],
   public: [
     { label: "Signup", url: "/signup" },
     { label: "Login", url: "/login" },
